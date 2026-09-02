@@ -31,6 +31,14 @@
 - [폐쇄망 축소 테스트와 외부 의존성](docs/08-closed-network.md)
 - [회사 폐쇄망 도입·운영 가이드](docs/09-company-adoption.md)
 
+## 프론트엔드 디버깅 허브 확장 설계
+
+- [한글 UI, Replay, 가입 퍼널, 사용자 추적, 개인정보 열람, 오류율, Web Vitals 설계](docs/10-frontend-observability-design.md)
+- [프론트엔드 디버깅 기능·화면 주소·사용법](docs/11-frontend-debugging-guide.md)
+- [다른 React 프로젝트에 재현하는 파일별 Quick Guide](docs/12-frontend-observability-quick-guide.md)
+
+확장 설계는 Sentry를 오류·Replay·Trace·성능의 진단 허브로 사용한다. 정확한 사용자 기준 가입 이탈률은 내부 분석계에서 계산하고, 개인정보 원문은 Sentry에 저장하지 않으며 별도 SSO/MFA/JIT 조회 게이트에서만 열람하는 것을 기준안으로 한다. Replay와 가명 사용자 ID는 보안 승인 및 전용 저장 probe 전까지 OFF다.
+
 ## 최종 결론
 
 Phase 0~9가 모두 완료됐습니다. 외부 통신이 차단된 Sentry 서버에서 핵심 오류 수집·조회, Source map 업로드, 재시작과 데이터 재조회가 동작했습니다. 회사 도입 시 필요한 사양, 반입물, DNS/HTTPS, 백업·복구, 업데이트, 취약점 대응, 권한과 담당 업무는 [Phase 9 회사 적용 가이드](docs/09-company-adoption.md)에 정리했습니다.
