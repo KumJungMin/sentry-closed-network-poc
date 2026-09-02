@@ -12,7 +12,7 @@
 | 3 | 최소 테스트 애플리케이션 | 완료 |
 | 4 | 기본 데이터 수집 검증 | 완료 |
 | 5 | 커스텀 데이터 수집 | 완료 |
-| 6 | 대시보드 구성 및 한계 검증 | 대기 |
+| 6 | 대시보드 구성 및 한계 검증 | 완료 |
 | 7 | 개인정보 및 금융정보 보호 | 대기 |
 | 8 | 폐쇄망 축소 테스트 | 대기 |
 | 9 | 회사 적용 문서 | 대기 |
@@ -26,11 +26,12 @@
 - [React SDK와 테스트 이벤트](docs/04-sdk-and-events.md)
 - [기본 데이터 수집과 Source map 검증](docs/05-basic-collection.md)
 - [금융 WebView 커스텀 데이터 수집](docs/05-custom-data.md)
+- [대시보드 구성과 지원 범위 검증](docs/06-dashboards.md)
 
 ## 다음 실행 순서
 
-1. [Phase 5 검증 결과](docs/05-custom-data.md)를 검토합니다.
-2. Sentry 이벤트 ID `44387889df8a43a89a5f84c1de24e709`에서 Tag, Context, Breadcrumb를 비교합니다.
-3. 승인 후 Phase 6에서 Self-hosted 대시보드의 실제 지원 범위와 한계를 검증합니다.
+1. [Phase 6 검증 결과](docs/06-dashboards.md)를 검토합니다.
+2. Sentry의 `PoC - Frontend Stability`, `PoC - Business Error Breakdown`, `PoC - API and Frontend Performance` 대시보드를 확인합니다.
+3. 승인 후 Phase 7에서 개인정보·금융정보 필터링과 비식별 사용자 정책을 검증합니다.
 
 > Sentry 서버는 `http://127.0.0.1:9000/`, React 테스트 앱은 `http://127.0.0.1:5173/`에서 실행 중입니다. 계정 비밀번호와 프로젝트 DSN은 Git에 기록하지 않습니다.

@@ -1,0 +1,200 @@
+[
+  {
+    "title": "PoC - Frontend Stability",
+    "projects": [2],
+    "environment": [],
+    "period": "14d",
+    "filters": {},
+    "widgets": [
+      {
+        "title": "Total Errors",
+        "displayType": "big_number",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "queries": [{"name": "", "conditions": "", "fields": ["count()"], "aggregates": ["count()"], "columns": [], "fieldAliases": [], "orderby": ""}],
+        "layout": {"x": 0, "y": 0, "w": 2, "h": 1, "minH": 1}
+      },
+      {
+        "title": "Affected Users",
+        "displayType": "big_number",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "queries": [{"name": "", "conditions": "", "fields": ["count_unique(user)"], "aggregates": ["count_unique(user)"], "columns": [], "fieldAliases": [], "orderby": ""}],
+        "layout": {"x": 2, "y": 0, "w": 2, "h": 1, "minH": 1}
+      },
+      {
+        "title": "Unresolved Issues",
+        "displayType": "big_number",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "queries": [{"name": "", "conditions": "is:unresolved", "fields": ["count_unique(issue)"], "aggregates": ["count_unique(issue)"], "columns": [], "fieldAliases": [], "orderby": ""}],
+        "layout": {"x": 4, "y": 0, "w": 2, "h": 1, "minH": 1}
+      },
+      {
+        "title": "New and Resolved Issues",
+        "displayType": "bar",
+        "widgetType": "issue",
+        "interval": "1h",
+        "queries": [{"name": "", "conditions": "", "fields": ["count(new_issues)", "count(resolved_issues)"], "aggregates": ["count(new_issues)", "count(resolved_issues)"], "columns": [], "fieldAliases": ["New", "Resolved"], "orderby": ""}],
+        "layout": {"x": 0, "y": 1, "w": 6, "h": 2, "minH": 2}
+      },
+      {
+        "title": "Browser Errors",
+        "displayType": "categorical_bar",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "limit": 10,
+        "queries": [{"name": "", "conditions": "has:browser.name", "fields": ["browser.name", "count()"], "aggregates": ["count()"], "columns": ["browser.name"], "fieldAliases": ["Browser", "Errors"], "orderby": "-count()"}],
+        "layout": {"x": 0, "y": 3, "w": 3, "h": 2, "minH": 2}
+      },
+      {
+        "title": "Errors by Release",
+        "displayType": "line",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "limit": 5,
+        "legendType": "breakdown",
+        "queries": [{"name": "", "conditions": "has:release", "fields": ["release", "count()"], "aggregates": ["count()"], "columns": ["release"], "fieldAliases": ["Release", "Errors"], "orderby": "-count()"}],
+        "layout": {"x": 3, "y": 3, "w": 3, "h": 2, "minH": 2}
+      }
+    ]
+  },
+  {
+    "title": "PoC - Business Error Breakdown",
+    "projects": [2],
+    "environment": [],
+    "period": "14d",
+    "filters": {},
+    "widgets": [
+      {
+        "title": "Errors by Channel",
+        "displayType": "categorical_bar",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "limit": 10,
+        "queries": [{"name": "", "conditions": "has:channel", "fields": ["channel", "count()"], "aggregates": ["count()"], "columns": ["channel"], "fieldAliases": ["Channel", "Errors"], "orderby": "-count()"}],
+        "layout": {"x": 0, "y": 0, "w": 2, "h": 2, "minH": 2}
+      },
+      {
+        "title": "Errors by Service",
+        "displayType": "categorical_bar",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "limit": 10,
+        "queries": [{"name": "", "conditions": "has:service", "fields": ["service", "count()"], "aggregates": ["count()"], "columns": ["service"], "fieldAliases": ["Service", "Errors"], "orderby": "-count()"}],
+        "layout": {"x": 2, "y": 0, "w": 2, "h": 2, "minH": 2}
+      },
+      {
+        "title": "Errors by Partner",
+        "displayType": "categorical_bar",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "limit": 10,
+        "queries": [{"name": "", "conditions": "has:partner", "fields": ["partner", "count()"], "aggregates": ["count()"], "columns": ["partner"], "fieldAliases": ["Partner", "Errors"], "orderby": "-count()"}],
+        "layout": {"x": 4, "y": 0, "w": 2, "h": 2, "minH": 2}
+      },
+      {
+        "title": "Errors by Currency",
+        "displayType": "categorical_bar",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "limit": 10,
+        "queries": [{"name": "", "conditions": "has:currency", "fields": ["currency", "count()"], "aggregates": ["count()"], "columns": ["currency"], "fieldAliases": ["Currency", "Errors"], "orderby": "-count()"}],
+        "layout": {"x": 0, "y": 2, "w": 2, "h": 2, "minH": 2}
+      },
+      {
+        "title": "Errors by Process Step",
+        "displayType": "categorical_bar",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "limit": 10,
+        "queries": [{"name": "", "conditions": "has:process_step", "fields": ["process_step", "count()"], "aggregates": ["count()"], "columns": ["process_step"], "fieldAliases": ["Process Step", "Errors"], "orderby": "-count()"}],
+        "layout": {"x": 2, "y": 2, "w": 2, "h": 2, "minH": 2}
+      },
+      {
+        "title": "Errors by Error Code",
+        "displayType": "categorical_bar",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "limit": 10,
+        "queries": [{"name": "", "conditions": "has:error_code", "fields": ["error_code", "count()"], "aggregates": ["count()"], "columns": ["error_code"], "fieldAliases": ["Error Code", "Errors"], "orderby": "-count()"}],
+        "layout": {"x": 4, "y": 2, "w": 2, "h": 2, "minH": 2}
+      }
+    ]
+  },
+  {
+    "title": "PoC - API and Frontend Performance",
+    "projects": [2],
+    "environment": [],
+    "period": "14d",
+    "filters": {},
+    "widgets": [
+      {
+        "title": "API Rate and Average Duration",
+        "displayType": "line",
+        "widgetType": "spans",
+        "interval": "1h",
+        "queries": [{"name": "", "conditions": "span.op:http.client", "fields": ["epm()", "avg(span.duration)"], "aggregates": ["epm()", "avg(span.duration)"], "columns": [], "fieldAliases": ["Requests/min", "Average Duration"], "orderby": ""}],
+        "layout": {"x": 0, "y": 0, "w": 2, "h": 2, "minH": 2}
+      },
+      {
+        "title": "HTTP Failure Ratios",
+        "displayType": "line",
+        "widgetType": "spans",
+        "interval": "1h",
+        "queries": [{"name": "", "conditions": "span.op:http.client", "fields": ["equation|count_if(span.status_code,between,400,499) / count(span.duration)", "equation|count_if(span.status_code,between,500,599) / count(span.duration)"], "aggregates": ["equation|count_if(span.status_code,between,400,499) / count(span.duration)", "equation|count_if(span.status_code,between,500,599) / count(span.duration)"], "columns": [], "fieldAliases": ["4XX Ratio", "5XX Ratio"], "orderby": ""}],
+        "layout": {"x": 2, "y": 0, "w": 2, "h": 2, "minH": 2}
+      },
+      {
+        "title": "Slow APIs",
+        "displayType": "table",
+        "widgetType": "spans",
+        "interval": "1h",
+        "limit": 20,
+        "queries": [{"name": "", "conditions": "span.op:http.client has:sentry.normalized_description", "fields": ["sentry.normalized_description", "span.status_code", "count()", "avg(span.duration)", "p95(span.duration)"], "aggregates": ["count()", "avg(span.duration)", "p95(span.duration)"], "columns": ["sentry.normalized_description", "span.status_code"], "fieldAliases": ["API", "Status", "Count", "Average", "P95"], "orderby": "-p95(span.duration)"}],
+        "layout": {"x": 4, "y": 0, "w": 2, "h": 2, "minH": 2}
+      },
+      {
+        "title": "Pageload Duration",
+        "displayType": "line",
+        "widgetType": "spans",
+        "interval": "1h",
+        "queries": [{"name": "", "conditions": "is_transaction:true transaction.op:pageload", "fields": ["avg(span.duration)", "p95(span.duration)"], "aggregates": ["avg(span.duration)", "p95(span.duration)"], "columns": [], "fieldAliases": ["Average", "P95"], "orderby": ""}],
+        "layout": {"x": 0, "y": 2, "w": 6, "h": 2, "minH": 2}
+      },
+      {
+        "title": "P75 LCP",
+        "displayType": "big_number",
+        "widgetType": "spans",
+        "interval": "1h",
+        "queries": [{"name": "", "conditions": "span.op:[ui.interaction.click,ui.interaction.hover,ui.interaction.drag,ui.interaction.press,ui.webvital.cls,ui.webvital.lcp,pageload,\"\"]", "fields": ["p75(browser.web_vital.lcp.value)"], "aggregates": ["p75(browser.web_vital.lcp.value)"], "columns": [], "fieldAliases": ["LCP"], "orderby": ""}],
+        "layout": {"x": 0, "y": 4, "w": 2, "h": 1, "minH": 1}
+      },
+      {
+        "title": "P75 INP",
+        "displayType": "big_number",
+        "widgetType": "spans",
+        "interval": "1h",
+        "queries": [{"name": "", "conditions": "span.op:[ui.interaction.click,ui.interaction.hover,ui.interaction.drag,ui.interaction.press,ui.webvital.cls,ui.webvital.lcp,pageload,\"\"]", "fields": ["p75(browser.web_vital.inp.value)"], "aggregates": ["p75(browser.web_vital.inp.value)"], "columns": [], "fieldAliases": ["INP"], "orderby": ""}],
+        "layout": {"x": 2, "y": 4, "w": 2, "h": 1, "minH": 1}
+      },
+      {
+        "title": "P75 CLS",
+        "displayType": "big_number",
+        "widgetType": "spans",
+        "interval": "1h",
+        "queries": [{"name": "", "conditions": "span.op:[ui.interaction.click,ui.interaction.hover,ui.interaction.drag,ui.interaction.press,ui.webvital.cls,ui.webvital.lcp,pageload,\"\"]", "fields": ["p75(browser.web_vital.cls.value)"], "aggregates": ["p75(browser.web_vital.cls.value)"], "columns": [], "fieldAliases": ["CLS"], "orderby": ""}],
+        "layout": {"x": 4, "y": 4, "w": 2, "h": 1, "minH": 1}
+      },
+      {
+        "title": "Web Vitals by Page",
+        "displayType": "table",
+        "widgetType": "spans",
+        "interval": "1h",
+        "limit": 20,
+        "queries": [{"name": "", "conditions": "span.op:[ui.interaction.click,ui.interaction.hover,ui.interaction.drag,ui.interaction.press,ui.webvital.cls,ui.webvital.lcp,pageload,\"\"]", "fields": ["transaction", "count()", "p75(browser.web_vital.lcp.value)", "p75(browser.web_vital.fcp.value)", "p75(browser.web_vital.inp.value)", "p75(browser.web_vital.cls.value)", "p75(browser.web_vital.ttfb.value)"], "aggregates": ["count()", "p75(browser.web_vital.lcp.value)", "p75(browser.web_vital.fcp.value)", "p75(browser.web_vital.inp.value)", "p75(browser.web_vital.cls.value)", "p75(browser.web_vital.ttfb.value)"], "columns": ["transaction"], "fieldAliases": ["Page", "Loads", "LCP", "FCP", "INP", "CLS", "TTFB"], "orderby": "-count()"}],
+        "layout": {"x": 0, "y": 5, "w": 6, "h": 4, "minH": 2}
+      }
+    ]
+  }
+]
