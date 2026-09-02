@@ -4,6 +4,7 @@ import { ExecutionLog } from "./components/ExecutionLog";
 import { TestActionCard } from "./components/TestActionCard";
 import { CustomDataTestSection } from "./custom-data/CustomDataTestSection";
 import { SecurityTestSection } from "./security/SecurityTestSection";
+import { SignupFunnelSection } from "./signup-funnel/SignupFunnelSection";
 import { testActions } from "./sentry/actions";
 import { sentryRuntime } from "./sentry/client";
 import type { ExecutionEntry, TestActionDefinition, TestActionId } from "./types";
@@ -119,6 +120,8 @@ export default function App() {
         release={sentryRuntime.release}
         isSentryEnabled={sentryRuntime.enabled}
       />
+
+      <SignupFunnelSection />
 
       <SecurityTestSection
         environment={sentryRuntime.environment}

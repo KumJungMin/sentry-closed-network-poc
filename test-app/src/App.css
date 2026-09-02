@@ -123,10 +123,93 @@ main {
 
 .test-section,
 .custom-data-section,
+.funnel-section,
 .security-section,
 .execution-log {
   margin-top: 48px;
 }
+
+.funnel-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 16px;
+}
+
+.funnel-simulator,
+.funnel-summary {
+  padding: 26px;
+  background: #fdfdf9;
+  border: 1px solid #d7ddd8;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgb(32 54 46 / 6%);
+}
+
+.funnel-progress {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+.funnel-progress li {
+  display: grid;
+  gap: 7px;
+  color: #748079;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.funnel-progress li span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  color: #617068;
+  background: #e9eeea;
+  border-radius: 9px;
+  place-items: center;
+}
+
+.funnel-progress li.is-active { color: #1e5b46; }
+.funnel-progress li.is-active span { color: #fff; background: #1e5b46; }
+
+.funnel-screen {
+  display: grid;
+  min-height: 180px;
+  padding: 24px;
+  background: #f1f5f1;
+  border-radius: 16px;
+}
+
+.funnel-screen > span { color: #65716c; font-size: 0.76rem; }
+.funnel-screen > strong { margin-top: 4px; font-size: 1.35rem; }
+.funnel-screen p { color: #59645f; line-height: 1.6; }
+.funnel-screen button {
+  padding: 12px 16px;
+  color: #fff;
+  font: inherit;
+  font-weight: 750;
+  background: #1e5b46;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.funnel-screen button:disabled { opacity: 0.55; cursor: wait; }
+
+.funnel-actions { display: flex; gap: 10px; align-items: end; }
+.funnel-actions button:last-child { color: #744; background: #f0dddd; }
+
+.funnel-summary { color: #e5eee9; background: #25312d; border-color: #17211d; }
+.funnel-summary__total { display: flex; gap: 12px; align-items: baseline; }
+.funnel-summary__total span { color: #afc6ba; }
+.funnel-summary__total strong { color: #fff; font-size: 2rem; }
+.funnel-summary__total small { margin-left: auto; color: #79d0a8; }
+.funnel-summary ol { display: grid; gap: 9px; margin: 18px 0 0; padding: 0; list-style: none; }
+.funnel-summary li { padding: 12px; background: rgb(255 255 255 / 6%); border-radius: 10px; }
+.funnel-summary li div { display: flex; justify-content: space-between; gap: 12px; }
+.funnel-summary li div + div { margin-top: 6px; color: #f0b9a9; font-size: 0.78rem; }
+.funnel-summary li span { color: #b8cec3; font-size: 0.78rem; }
 
 .security-layout {
   display: grid;
@@ -602,6 +685,7 @@ main {
 
   .custom-data-layout,
   .custom-data-fields,
+  .funnel-layout,
   .security-layout {
     grid-template-columns: 1fr;
   }

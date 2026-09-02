@@ -16,7 +16,8 @@ cp .env.example .env.local
 
 ```bash
 pnpm install
-pnpm dev
+pnpm analytics  # 터미널 1: 정확한 가입 퍼널 집계
+pnpm dev        # 터미널 2: 테스트 앱
 ```
 
 브라우저에서 `http://127.0.0.1:5173`에 접속합니다.
