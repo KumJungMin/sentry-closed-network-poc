@@ -196,5 +196,131 @@
         "layout": {"x": 0, "y": 5, "w": 6, "h": 4, "minH": 2}
       }
     ]
+  },
+  {
+    "title": "PoC - Errors Daily (24h)",
+    "projects": [2],
+    "environment": [],
+    "period": "24h",
+    "filters": {},
+    "widgets": [
+      {
+        "title": "Errors (24h)",
+        "displayType": "big_number",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "queries": [{"name": "", "conditions": "", "fields": ["count()"], "aggregates": ["count()"], "columns": [], "fieldAliases": ["Errors"], "orderby": ""}],
+        "layout": {"x": 0, "y": 0, "w": 3, "h": 1, "minH": 1}
+      },
+      {
+        "title": "Affected Users (24h)",
+        "displayType": "big_number",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "queries": [{"name": "", "conditions": "has:user", "fields": ["count_unique(user)"], "aggregates": ["count_unique(user)"], "columns": [], "fieldAliases": ["Users"], "orderby": ""}],
+        "layout": {"x": 3, "y": 0, "w": 3, "h": 1, "minH": 1}
+      },
+      {
+        "title": "Hourly Error Trend",
+        "displayType": "line",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "queries": [{"name": "", "conditions": "", "fields": ["count()"], "aggregates": ["count()"], "columns": [], "fieldAliases": ["Errors"], "orderby": ""}],
+        "layout": {"x": 0, "y": 1, "w": 6, "h": 2, "minH": 2}
+      },
+      {
+        "title": "Top Errors (24h)",
+        "displayType": "table",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "limit": 10,
+        "queries": [{"name": "", "conditions": "", "fields": ["title", "count()", "count_unique(user)"], "aggregates": ["count()", "count_unique(user)"], "columns": ["title"], "fieldAliases": ["Error", "Events", "Users"], "orderby": "-count()"}],
+        "layout": {"x": 0, "y": 3, "w": 6, "h": 3, "minH": 2}
+      }
+    ]
+  },
+  {
+    "title": "PoC - Errors Weekly (7d)",
+    "projects": [2],
+    "environment": [],
+    "period": "7d",
+    "filters": {},
+    "widgets": [
+      {
+        "title": "Errors (7d)",
+        "displayType": "big_number",
+        "widgetType": "error-events",
+        "interval": "1d",
+        "queries": [{"name": "", "conditions": "", "fields": ["count()"], "aggregates": ["count()"], "columns": [], "fieldAliases": ["Errors"], "orderby": ""}],
+        "layout": {"x": 0, "y": 0, "w": 3, "h": 1, "minH": 1}
+      },
+      {
+        "title": "Affected Users (7d)",
+        "displayType": "big_number",
+        "widgetType": "error-events",
+        "interval": "1d",
+        "queries": [{"name": "", "conditions": "has:user", "fields": ["count_unique(user)"], "aggregates": ["count_unique(user)"], "columns": [], "fieldAliases": ["Users"], "orderby": ""}],
+        "layout": {"x": 3, "y": 0, "w": 3, "h": 1, "minH": 1}
+      },
+      {
+        "title": "Daily Error Trend",
+        "displayType": "line",
+        "widgetType": "error-events",
+        "interval": "1d",
+        "queries": [{"name": "", "conditions": "", "fields": ["count()"], "aggregates": ["count()"], "columns": [], "fieldAliases": ["Errors"], "orderby": ""}],
+        "layout": {"x": 0, "y": 1, "w": 6, "h": 2, "minH": 2}
+      },
+      {
+        "title": "Top Errors (7d)",
+        "displayType": "table",
+        "widgetType": "error-events",
+        "interval": "1d",
+        "limit": 10,
+        "queries": [{"name": "", "conditions": "", "fields": ["title", "count()", "count_unique(user)"], "aggregates": ["count()", "count_unique(user)"], "columns": ["title"], "fieldAliases": ["Error", "Events", "Users"], "orderby": "-count()"}],
+        "layout": {"x": 0, "y": 3, "w": 6, "h": 3, "minH": 2}
+      }
+    ]
+  },
+  {
+    "title": "PoC - Errors Monthly (30d)",
+    "projects": [2],
+    "environment": [],
+    "period": "30d",
+    "filters": {},
+    "widgets": [
+      {
+        "title": "Errors (30d)",
+        "displayType": "big_number",
+        "widgetType": "error-events",
+        "interval": "1d",
+        "queries": [{"name": "", "conditions": "", "fields": ["count()"], "aggregates": ["count()"], "columns": [], "fieldAliases": ["Errors"], "orderby": ""}],
+        "layout": {"x": 0, "y": 0, "w": 3, "h": 1, "minH": 1}
+      },
+      {
+        "title": "Affected Users (30d)",
+        "displayType": "big_number",
+        "widgetType": "error-events",
+        "interval": "1d",
+        "queries": [{"name": "", "conditions": "has:user", "fields": ["count_unique(user)"], "aggregates": ["count_unique(user)"], "columns": [], "fieldAliases": ["Users"], "orderby": ""}],
+        "layout": {"x": 3, "y": 0, "w": 3, "h": 1, "minH": 1}
+      },
+      {
+        "title": "Daily Error Trend",
+        "displayType": "line",
+        "widgetType": "error-events",
+        "interval": "1d",
+        "queries": [{"name": "", "conditions": "", "fields": ["count()"], "aggregates": ["count()"], "columns": [], "fieldAliases": ["Errors"], "orderby": ""}],
+        "layout": {"x": 0, "y": 1, "w": 6, "h": 2, "minH": 2}
+      },
+      {
+        "title": "Top Errors (30d)",
+        "displayType": "table",
+        "widgetType": "error-events",
+        "interval": "1d",
+        "limit": 10,
+        "queries": [{"name": "", "conditions": "", "fields": ["title", "count()", "count_unique(user)"], "aggregates": ["count()", "count_unique(user)"], "columns": ["title"], "fieldAliases": ["Error", "Events", "Users"], "orderby": "-count()"}],
+        "layout": {"x": 0, "y": 3, "w": 6, "h": 3, "minH": 2}
+      }
+    ]
   }
 ]
