@@ -5,6 +5,7 @@ import { LiveLogsSection } from "./components/LiveLogsSection";
 import { TestActionCard } from "./components/TestActionCard";
 import { CustomDataTestSection } from "./custom-data/CustomDataTestSection";
 import { SecurityTestSection } from "./security/SecurityTestSection";
+import { ServiceErrorExplorer } from "./services/ServiceErrorExplorer";
 import { SignupFunnelSection } from "./signup-funnel/SignupFunnelSection";
 import { testActions } from "./sentry/actions";
 import { sentryRuntime } from "./sentry/client";
@@ -128,6 +129,8 @@ export default function App() {
         isSentryEnabled={sentryRuntime.enabled}
         logsEnabled={sentryRuntime.logsEnabled}
       />
+
+      <ServiceErrorExplorer />
 
       <SecurityTestSection
         environment={sentryRuntime.environment}

@@ -125,10 +125,31 @@ main {
 .custom-data-section,
 .funnel-section,
 .live-logs-section,
+.service-explorer,
 .security-section,
 .execution-log {
   margin-top: 48px;
 }
+
+.service-explorer__panel {
+  display: flex;
+  gap: 18px;
+  align-items: end;
+  padding: 22px;
+  background: #fdfdf9;
+  border: 1px solid #d7ddd8;
+  border-radius: 18px;
+}
+.service-explorer__panel label { display: grid; gap: 7px; }
+.service-explorer__panel label span { color: #53615a; font-size: 0.78rem; font-weight: 750; }
+.service-explorer__panel select { min-width: 190px; padding: 10px 12px; font: inherit; border: 1px solid #c8d2cb; border-radius: 10px; }
+.service-explorer__panel code { margin-bottom: 10px; color: #2d7258; }
+.service-explorer__panel nav { display: flex; gap: 8px; margin-left: auto; }
+.service-explorer__panel a { padding: 10px 14px; color: #fff; font-weight: 750; text-decoration: none; background: #1e5b46; border-radius: 10px; }
+.service-projects { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+.service-projects article { display: grid; gap: 5px; padding: 18px; background: #e8eee9; border-radius: 14px; }
+.service-projects span { color: #2d7258; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem; }
+.service-projects small { color: #66746d; }
 
 .live-log-grid {
   display: grid;
@@ -723,9 +744,13 @@ main {
   .custom-data-fields,
   .funnel-layout,
   .live-log-grid,
+  .service-projects,
   .security-layout {
     grid-template-columns: 1fr;
   }
+
+  .service-explorer__panel { align-items: stretch; flex-direction: column; }
+  .service-explorer__panel nav { margin-left: 0; }
 
   .security-protected-card ul { grid-template-columns: 1fr; }
 
