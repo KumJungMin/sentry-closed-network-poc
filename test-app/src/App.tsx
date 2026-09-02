@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 import { ExecutionLog } from "./components/ExecutionLog";
+import { LiveLogsSection } from "./components/LiveLogsSection";
 import { TestActionCard } from "./components/TestActionCard";
 import { CustomDataTestSection } from "./custom-data/CustomDataTestSection";
 import { SecurityTestSection } from "./security/SecurityTestSection";
@@ -122,6 +123,11 @@ export default function App() {
       />
 
       <SignupFunnelSection />
+
+      <LiveLogsSection
+        isSentryEnabled={sentryRuntime.enabled}
+        logsEnabled={sentryRuntime.logsEnabled}
+      />
 
       <SecurityTestSection
         environment={sentryRuntime.environment}

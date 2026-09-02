@@ -124,10 +124,46 @@ main {
 .test-section,
 .custom-data-section,
 .funnel-section,
+.live-logs-section,
 .security-section,
 .execution-log {
   margin-top: 48px;
 }
+
+.live-log-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.live-log-card {
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  background: #fdfdf9;
+  border: 1px solid #d7ddd8;
+  border-radius: 18px;
+}
+
+.live-log-card h3 { margin: 12px 0 8px; }
+.live-log-card code { color: #2d7258; font-size: 0.78rem; overflow-wrap: anywhere; }
+.live-log-card p { color: #59645f; line-height: 1.55; }
+.live-log-card button {
+  margin-top: auto;
+  padding: 11px 14px;
+  color: #fff;
+  font: inherit;
+  font-weight: 750;
+  background: #1e5b46;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.live-log-card button:disabled { opacity: 0.55; cursor: wait; }
+.log-level { align-self: flex-start; padding: 4px 8px; font-size: 0.68rem; font-weight: 850; text-transform: uppercase; background: #dceee3; border-radius: 999px; }
+.log-level--warn { color: #7d571a; background: #fae9ca; }
+.log-level--error { color: #8d3030; background: #f5dddd; }
+.live-log-result { padding: 12px 16px; color: #405048; background: #e8eee9; border-radius: 10px; }
 
 .funnel-layout {
   display: grid;
@@ -686,6 +722,7 @@ main {
   .custom-data-layout,
   .custom-data-fields,
   .funnel-layout,
+  .live-log-grid,
   .security-layout {
     grid-template-columns: 1fr;
   }

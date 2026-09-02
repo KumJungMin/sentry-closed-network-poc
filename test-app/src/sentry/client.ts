@@ -17,6 +17,7 @@ const collectionPolicy = buildCollectionPolicy(
   import.meta.env.VITE_SENTRY_REPLAY_ON_ERROR_SAMPLE_RATE,
 );
 const explicitlyDisabled = import.meta.env.VITE_SENTRY_ENABLED?.trim().toLowerCase() === "false";
+const logsEnabled = import.meta.env.VITE_SENTRY_LOGS_ENABLED?.trim().toLowerCase() !== "false";
 
 export const sentryRuntime = {
   enabled: dsn.length > 0 && !explicitlyDisabled,
@@ -24,6 +25,7 @@ export const sentryRuntime = {
   release: import.meta.env.VITE_APP_RELEASE?.trim() || "frontend-poc@0.1.0",
   tracesSampleRate: collectionPolicy.tracesSampleRate,
   replayEnabled: collectionPolicy.replayEnabled,
+  logsEnabled,
   defaultPiiEnabled: false,
 } as const;
 
@@ -32,6 +34,7 @@ if (sentryRuntime.enabled) {
     dsn,
     environment: sentryRuntime.environment,
     release: sentryRuntime.release,
+    enableLogs: sentryRuntime.logsEnabled,
     integrations: [
       Sentry.browserTracingIntegration(),
       ...(collectionPolicy.replayEnabled ? [createReplayIntegration()] : []),
