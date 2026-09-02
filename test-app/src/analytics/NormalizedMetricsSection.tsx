@@ -27,6 +27,8 @@ export function NormalizedMetricsSection({ pseudonymousId }: NormalizedMetricsSe
     try {
       await recordUsageEvent({ actorId: pseudonymousId, kind: "activity", service: "payment", page: "payment.confirm" });
       await refresh();
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "정상 사용자 모수 저장 실패");
     } finally {
       setIsSubmitting(false);
     }
@@ -38,6 +40,8 @@ export function NormalizedMetricsSection({ pseudonymousId }: NormalizedMetricsSe
       await emitStructuredLog("payment-failed");
       await recordUsageEvent({ actorId: pseudonymousId, kind: "error", service: "payment", issueKey: "synthetic.payment.timeout" });
       await refresh();
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "오류 영향 사용자 저장 실패");
     } finally {
       setIsSubmitting(false);
     }

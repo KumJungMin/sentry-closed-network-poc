@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   fetchPrivateProfile,
   requestPrivacyChallenge,
@@ -22,6 +22,7 @@ export function PrivacyAccessSection({ pseudonymousId }: PrivacyAccessSectionPro
   const [profile, setProfile] = useState<SyntheticPrivateProfile | null>(null);
   const [status, setStatus] = useState("가명 ID 연결 후 조회 승인을 요청하세요.");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const sessionTokenRef = useRef("");
 
   const requestAccess = async () => {
     setIsSubmitting(true);
@@ -42,8 +43,15 @@ export function PrivacyAccessSection({ pseudonymousId }: PrivacyAccessSectionPro
     setIsSubmitting(true);
     try {
       const nextSession = await verifyPrivacyChallenge(challenge.challengeId, code);
-      const nextProfile = await fetchPrivateProfile(pseudonymousId, nextSession.sessionToken);
+      let nextProfile: SyntheticPrivateProfile;
+      try {
+        nextProfile = await fetchPrivateProfile(pseudonymousId, nextSession.sessionToken);
+      } catch (error) {
+        await revokePrivacySession(nextSession.sessionToken);
+        throw error;
+      }
       setSession(nextSession);
+      sessionTokenRef.current = nextSession.sessionToken;
       setProfile(nextProfile);
       setStatus("10분 JIT 조회 세션이 열렸습니다. 조회 행위는 별도 감사 로그에 남습니다.");
     } catch (error) {
@@ -55,12 +63,17 @@ export function PrivacyAccessSection({ pseudonymousId }: PrivacyAccessSectionPro
 
   const close = async () => {
     if (session) await revokePrivacySession(session.sessionToken);
+    sessionTokenRef.current = "";
     setSession(null);
     setProfile(null);
     setChallenge(null);
     setCode("");
     setStatus("개인정보 조회 세션을 종료했습니다.");
   };
+
+  useEffect(() => () => {
+    if (sessionTokenRef.current) void revokePrivacySession(sessionTokenRef.current);
+  }, []);
 
   return (
     <section className="privacy-section" aria-labelledby="privacy-title">

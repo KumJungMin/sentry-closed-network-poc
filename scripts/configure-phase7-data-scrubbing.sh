@@ -30,9 +30,9 @@ fi
 : "${SENTRY_URL:=http://127.0.0.1:9000}"
 : "${SENTRY_ORG:=sentry}"
 : "${SENTRY_PROJECT:=frontend-poc}"
+: "${SENTRY_PROJECTS:=${SENTRY_PROJECT},frontend-membership,frontend-remittance,frontend-payment}"
 
 ORG_API_URL="${SENTRY_URL%/}/api/0/organizations/${SENTRY_ORG}/"
-PROJECT_API_URL="${SENTRY_URL%/}/api/0/projects/${SENTRY_ORG}/${SENTRY_PROJECT}/"
 AUTH_HEADER="Authorization: Bearer ${SENTRY_AUTH_TOKEN}"
 FIELDS_JSON="$(jq -c '.' "${FIELDS_FILE}")"
 PII_CONFIG_JSON="$(jq -c '.' "${PII_CONFIG_FILE}")"
@@ -43,7 +43,7 @@ docker compose \
   --file "${SELF_HOSTED_DIR}/docker-compose.yml" \
   exec -T \
   --env "PHASE7_SENTRY_ORG=${SENTRY_ORG}" \
-  --env "PHASE7_SENTRY_PROJECT=${SENTRY_PROJECT}" \
+  --env "PHASE7_SENTRY_PROJECTS=${SENTRY_PROJECTS}" \
   --env "PHASE7_SENSITIVE_FIELDS_JSON=${FIELDS_JSON}" \
   --env "PHASE7_RELAY_PII_CONFIG_JSON=${PII_CONFIG_JSON}" \
   web \
@@ -58,7 +58,7 @@ docker compose \
   --file "${SELF_HOSTED_DIR}/docker-compose.yml" \
   exec -T \
   --env "PHASE7_SENTRY_ORG=${SENTRY_ORG}" \
-  --env "PHASE7_SENTRY_PROJECT=${SENTRY_PROJECT}" \
+  --env "PHASE7_SENTRY_PROJECTS=${SENTRY_PROJECTS}" \
   --env "PHASE7_RELAY_PII_CONFIG_JSON=${PII_CONFIG_JSON}" \
   web \
   /.venv/bin/sentry shell --no-imports \
@@ -100,14 +100,19 @@ curl --fail-with-body --silent --show-error \
   '
 
 echo "5/5 프로젝트 설정 API 검증"
-curl --fail-with-body --silent --show-error \
-  --header "${AUTH_HEADER}" \
-  "${PROJECT_API_URL}" \
-  | jq -r '
-    "  dataScrubber=\(.dataScrubber)",
-    "  dataScrubberDefaults=\(.dataScrubberDefaults)",
-    "  scrubIPAddresses=\(.scrubIPAddresses)",
-    "  sensitiveFields=\(.sensitiveFields | length)개",
-    "  relayPiiConfigConfigured=\(.relayPiiConfig != null)",
-    "  relayPiiApplications=\((.relayPiiConfig | fromjson | .applications | length) // 0)개"
-  '
+IFS=',' read -r -a project_slugs <<<"${SENTRY_PROJECTS}"
+for project_slug in "${project_slugs[@]}"; do
+  PROJECT_API_URL="${SENTRY_URL%/}/api/0/projects/${SENTRY_ORG}/${project_slug}/"
+  curl --fail-with-body --silent --show-error \
+    --header "${AUTH_HEADER}" \
+    "${PROJECT_API_URL}" \
+    | jq -r --arg project_slug "${project_slug}" '
+      "  project=\($project_slug)",
+      "    dataScrubber=\(.dataScrubber)",
+      "    dataScrubberDefaults=\(.dataScrubberDefaults)",
+      "    scrubIPAddresses=\(.scrubIPAddresses)",
+      "    sensitiveFields=\(.sensitiveFields | length)개",
+      "    relayPiiConfigConfigured=\(.relayPiiConfig != null)",
+      "    relayPiiApplications=\((.relayPiiConfig | fromjson | .applications | length) // 0)개"
+    '
+done

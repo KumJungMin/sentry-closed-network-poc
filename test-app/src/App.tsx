@@ -138,7 +138,7 @@ export default function App() {
 
       <IdentityTrackingSection onIdentityChange={setPseudonymousId} />
 
-      <PrivacyAccessSection pseudonymousId={pseudonymousId} />
+      <PrivacyAccessSection key={pseudonymousId || "anonymous"} pseudonymousId={pseudonymousId} />
 
       <NormalizedMetricsSection pseudonymousId={pseudonymousId} />
 
