@@ -3,11 +3,13 @@ import { appendFile, mkdir, readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { calculateFunnel, normalizeAnalyticsEvent } from "./analytics-core.mjs";
+import { pseudonymizeUserId } from "./identity-core.mjs";
 
 const port = Number(process.env.INTERNAL_OBSERVABILITY_PORT || 4318);
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dataDirectory = resolve(repositoryRoot, ".runtime", "internal-observability");
 const eventFile = resolve(dataDirectory, "analytics-events.ndjson");
+const identityHmacSecret = process.env.IDENTITY_HMAC_SECRET || "local-poc-identity-secret-v1";
 
 await mkdir(dataDirectory, { recursive: true });
 
@@ -67,6 +69,13 @@ const server = createServer(async (request, response) => {
       events.push(event);
       await appendFile(eventFile, `${JSON.stringify(event)}\n`, { mode: 0o600 });
       sendJson(response, 202, { accepted: true });
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/identity/pseudonymize") {
+      const input = await readJson(request);
+      const pseudonymousId = pseudonymizeUserId(input.userId, identityHmacSecret);
+      sendJson(response, 200, { pseudonymousId });
       return;
     }
 

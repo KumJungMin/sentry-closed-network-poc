@@ -8,8 +8,8 @@ RUNTIME_FILE="${PROJECT_ROOT}/test-app/.env.local"
 EVENT_BUILDER="${PROJECT_ROOT}/test-app/scripts/build-phase7-verification-event.ts"
 VERIFY_MODE="${1:-client}"
 
-if [[ "${VERIFY_MODE}" != "client" && "${VERIFY_MODE}" != "--server-probe" ]]; then
-  echo "사용법: $0 [--server-probe]" >&2
+if [[ "${VERIFY_MODE}" != "client" && "${VERIFY_MODE}" != "--server-probe" && "${VERIFY_MODE}" != "--identity-probe" ]]; then
+  echo "사용법: $0 [--server-probe|--identity-probe]" >&2
   exit 1
 fi
 
@@ -53,6 +53,11 @@ INGEST_URL="${DSN_SCHEME}://${DSN_HOST}/api/${PROJECT_ID}/envelope/"
 EVENT_ID="$(openssl rand -hex 16)"
 TIMESTAMP="$(date -u +'%Y-%m-%dT%H:%M:%S.000Z')"
 AUTH_HEADER="Authorization: Bearer ${SENTRY_AUTH_TOKEN}"
+APPROVED_USER_ID="dbg_v1_R2Z4s9QmT6xK1pW8nB3cD5fH"
+PROBE_USER_ID="raw-user-id-phase7"
+if [[ "${VERIFY_MODE}" == "--identity-probe" ]]; then
+  PROBE_USER_ID="${APPROVED_USER_ID}"
+fi
 ENVELOPE_FILE="$(mktemp)"
 EVENT_FILE="$(mktemp)"
 STORED_FILE="$(mktemp)"
@@ -61,6 +66,7 @@ trap 'rm -f "${ENVELOPE_FILE}" "${EVENT_FILE}" "${STORED_FILE}"' EXIT
 jq -n \
   --arg event_id "${EVENT_ID}" \
   --arg timestamp "${TIMESTAMP}" \
+  --arg probe_user_id "${PROBE_USER_ID}" \
   '{
     event_id: $event_id,
     timestamp: $timestamp,
@@ -76,7 +82,7 @@ jq -n \
       synthetic_data_only: "true"
     },
     user: {
-      id: "raw-user-id-phase7",
+      id: $probe_user_id,
       username: "FAKE-NAME-PHASE7",
       email: "phase7.person@example.invalid",
       ip_address: "203.0.113.77"
@@ -141,8 +147,10 @@ fi
 
 if [[ "${VERIFY_MODE}" == "client" ]]; then
   echo "1/3 beforeSend 정제 합성 이벤트 전송 (event id=${EVENT_ID})"
-else
+elif [[ "${VERIFY_MODE}" == "--server-probe" ]]; then
   echo "1/3 서버 방어 probe 원본 이벤트 전송 (event id=${EVENT_ID})"
+else
+  echo "1/3 허용된 가명 사용자 ID 보존 probe 전송 (event id=${EVENT_ID})"
 fi
 curl --fail-with-body --silent --show-error \
   --header "Content-Type: application/x-sentry-envelope" \
@@ -203,6 +211,12 @@ fi
 
 if ! jq -e '.. | strings | select(. == "privacy-scrub-test")' "${STORED_FILE}" >/dev/null; then
   echo "안전한 업무 상태까지 제거되어 스크러빙 범위가 과도합니다." >&2
+  exit 1
+fi
+
+if [[ "${VERIFY_MODE}" == "--identity-probe" ]] && \
+  ! jq -e --arg approved_user_id "${APPROVED_USER_ID}" '.. | strings | select(. == $approved_user_id)' "${STORED_FILE}" >/dev/null; then
+  echo "허용된 가명 사용자 ID가 서버에서 제거되었습니다." >&2
   exit 1
 fi
 

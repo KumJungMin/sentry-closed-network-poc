@@ -8,7 +8,7 @@ export interface CollectionPolicy {
 }
 
 const filteredValue = "[Filtered]";
-const anonymousUserIdPattern = /^anon[-_][a-z0-9_-]{8,64}$/i;
+const anonymousUserIdPattern = /^dbg_v1_[A-Za-z0-9_-]{20,80}$/;
 
 const sensitiveKeys = new Set([
   "name", "fullname", "firstname", "lastname", "username", "customername",

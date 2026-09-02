@@ -126,10 +126,25 @@ main {
 .funnel-section,
 .live-logs-section,
 .service-explorer,
+.identity-section,
 .security-section,
 .execution-log {
   margin-top: 48px;
 }
+
+.identity-panel { padding: 24px; background: #fdfdf9; border: 1px solid #d7ddd8; border-radius: 18px; }
+.identity-panel > label { display: grid; gap: 7px; }
+.identity-panel > label span { color: #53615a; font-size: 0.78rem; font-weight: 750; }
+.identity-panel input { padding: 11px 13px; font: inherit; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid #c8d2cb; border-radius: 10px; }
+.identity-actions { display: flex; gap: 10px; margin-top: 12px; }
+.identity-actions button { padding: 11px 15px; color: #fff; font: inherit; font-weight: 750; background: #1e5b46; border: 0; border-radius: 10px; cursor: pointer; }
+.identity-actions button:last-child { color: #44534b; background: #e3e9e3; }
+.identity-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+.identity-panel > p { color: #65716c; font-size: 0.84rem; }
+.identity-result { display: grid; gap: 8px; padding: 18px; color: #d9e8e0; background: #193a2f; border-radius: 14px; }
+.identity-result code { color: #79d0a8; overflow-wrap: anywhere; }
+.identity-result nav { display: flex; gap: 8px; }
+.identity-result a { padding: 8px 11px; color: #193a2f; font-size: 0.8rem; font-weight: 750; text-decoration: none; background: #d9eee3; border-radius: 8px; }
 
 .service-explorer__panel {
   display: flex;

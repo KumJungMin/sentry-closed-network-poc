@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./App.css";
 import { ExecutionLog } from "./components/ExecutionLog";
 import { LiveLogsSection } from "./components/LiveLogsSection";
+import { IdentityTrackingSection } from "./identity/IdentityTrackingSection";
 import { TestActionCard } from "./components/TestActionCard";
 import { CustomDataTestSection } from "./custom-data/CustomDataTestSection";
 import { SecurityTestSection } from "./security/SecurityTestSection";
@@ -131,6 +132,8 @@ export default function App() {
       />
 
       <ServiceErrorExplorer />
+
+      <IdentityTrackingSection />
 
       <SecurityTestSection
         environment={sentryRuntime.environment}

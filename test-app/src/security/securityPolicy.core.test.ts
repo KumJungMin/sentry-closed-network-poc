@@ -57,17 +57,17 @@ describe("securityPolicy", () => {
     expect(sanitized.extra).toEqual({ safe_retry_count: 2 });
   });
 
-  it("사전 익명화된 사용자 ID만 허용한다", () => {
+  it("서버가 발급한 가명 디버그 ID만 허용한다", () => {
     const sanitized = sanitizeSentryEvent({
       type: undefined,
       user: {
-        id: "anon-c9fe82a110",
+        id: "dbg_v1_R2Z4s9QmT6xK1pW8nB3cD5fH",
         email: fakeSensitiveValues.email,
         username: fakeSensitiveValues.name,
       },
     });
 
-    expect(sanitized.user).toEqual({ id: "anon-c9fe82a110" });
+    expect(sanitized.user).toEqual({ id: "dbg_v1_R2Z4s9QmT6xK1pW8nB3cD5fH" });
   });
 
   it("입력·console breadcrumb는 폐기하고 HTTP breadcrumb는 정제한다", () => {

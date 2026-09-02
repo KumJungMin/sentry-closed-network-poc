@@ -19,21 +19,26 @@ project_fields = sorted(
     set(project.get_option("sentry:sensitive_fields", []) or []) | set(required_fields)
 )
 existing_pii_config = json.loads(project.get_option("sentry:relay_pii_config", None) or "{}")
+existing_applications = existing_pii_config.get("applications") or {}
+required_applications = required_pii_config["applications"]
+merged_applications = {
+    key: list(dict.fromkeys([
+        *(existing_applications.get(key) or []),
+        *applications,
+    ]))
+    for key, applications in {
+        **existing_applications,
+        **required_applications,
+    }.items()
+}
+# user.id는 허용된 dbg_v1 형식만 보존해야 하므로 과거의 remove-anything 규칙을 교체한다.
+merged_applications["$user.id"] = required_applications["$user.id"]
 merged_pii_config = {
     "rules": {
         **(existing_pii_config.get("rules") or {}),
         **required_pii_config["rules"],
     },
-    "applications": {
-        key: list(dict.fromkeys([
-            *((existing_pii_config.get("applications") or {}).get(key) or []),
-            *applications,
-        ]))
-        for key, applications in {
-            **(existing_pii_config.get("applications") or {}),
-            **required_pii_config["applications"],
-        }.items()
-    },
+    "applications": merged_applications,
 }
 merged_pii_config_json = json.dumps(merged_pii_config, separators=(",", ":"))
 validate_pii_config_update(organization, merged_pii_config_json)
