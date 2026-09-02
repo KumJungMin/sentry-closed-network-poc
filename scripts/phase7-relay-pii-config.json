@@ -8,6 +8,7 @@
     }
   },
   "applications": {
+    "$user.id": ["phase7-remove-anything-v1"],
     "$user.email": ["phase7-remove-anything-v1"],
     "$user.username": ["phase7-remove-anything-v1"],
     "$user.ip_address": ["phase7-remove-anything-v1"],

@@ -4,7 +4,6 @@ import os
 from sentry.models.organization import Organization
 from sentry.models.project import Project
 from sentry.relay.datascrubbing import validate_pii_config_update
-from sentry.tasks.relay import invalidate_project_config
 
 
 organization_slug = os.environ.get("PHASE7_SENTRY_ORG", "sentry")
@@ -49,10 +48,6 @@ project.update_option("sentry:scrub_defaults", True)
 project.update_option("sentry:scrub_ip_address", True)
 project.update_option("sentry:sensitive_fields", project_fields)
 project.update_option("sentry:relay_pii_config", merged_pii_config_json)
-invalidate_project_config(
-    project_id=project.id,
-    trigger="phase7_security_configuration",
-)
 
 print(
     f"  관리 셸 적용 완료: organization={organization.slug}({len(organization_fields)}개), "

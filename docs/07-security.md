@@ -63,11 +63,14 @@
 - 조직: data scrubber ON, default scrubber ON, IP scrubbing ON
 - 프로젝트: data scrubber ON, default scrubber ON, IP scrubbing ON
 - 추가 민감 필드: 조직·프로젝트 각각 49개
-- Advanced Data Scrubbing: 프로젝트 selector 57개
+- Advanced Data Scrubbing: 프로젝트 selector 58개
 - 기존 Advanced rule이 있다면 덮어쓰지 않고 rule/application을 병합
-- Relay 프로젝트 설정 캐시를 Sentry의 `invalidate_project_config`로 즉시 재계산
+- 비동기 invalidation이 끝난 뒤 Relay project config cache를 최신 DB 값으로 재계산
+- Relay를 재기동해 새 project config를 즉시 로드
 
 현재 토큰은 읽기 권한만 있어 조직 PUT API가 403을 반환한다. 스크립트는 Self-hosted 컨테이너의 공식 Django 모델과 Relay 설정 계산 경로를 사용하고, 적용 결과는 다시 읽기 API로 확인한다. SaaS 환경에서는 이 관리 셸 경로를 사용할 수 없으며 `org:write`/`project:write` 토큰 또는 관리자 UI가 필요하다.
+
+설정 반영 중 Relay와 의존 관계인 nginx가 함께 재시작되므로 수 초간 UI·ingest가 끊길 수 있다. 운영에서는 변경 시간에 실행하고 종료 직후 서버 probe까지 통과해야 완료로 본다.
 
 ## 자동 검증 결과
 
@@ -96,20 +99,24 @@
 - 이름·전화·이메일·계좌·주민등록번호·CI·OTP·토큰·Cookie·송수취인·API 원문·폼·거래 ID·가공 전 user ID 등 18개 원본: 없음
 - 안전한 `privacy-scrub-test`: 유지
 
-## 중요 제한: 서버 단독 probe
+## 서버 단독 probe 해결과 검증
 
 ```bash
 ./scripts/verify-phase7-data-scrubbing.sh --server-probe
 ```
 
-이 옵션은 클라이언트 필터를 고의로 우회해 합성 원본을 Relay에 직접 보낸다. 현재 Self-hosted 26.8.0 런타임에서는 다음 현상이 재현됐다.
+이 옵션은 클라이언트 필터를 고의로 우회해 합성 원본을 Relay에 직접 보낸다. 처음에는 실제 내부 Relay 수집 경로에서 합성 원본이 저장돼 probe가 실패했다.
 
-- API와 계산된 Relay project config에는 기본 규칙, 민감 필드 49개, Advanced selector 57개가 존재한다.
-- Sentry 서버의 `scrub_data(project, event)` 함수에 같은 payload를 직접 넣으면 규칙이 정상 제거한다.
-- 그러나 실제 내부 Relay 수집 경로에서는 15개 합성 원본이 저장되어 probe가 실패한다.
-- Relay 로그에 간헐적인 `Health check probe 'auth' failed`가 남지만 ready healthcheck는 통과한다.
+- 첫 실패에서는 관리 shell이 갱신한 DB 설정과 Relay가 사용하는 Redis project config cache가 달랐다.
+- cache를 최신 DB 값으로 재계산하자 18개 중 17개가 제거됐고 `user.id`만 남았다.
+- Advanced 설정에 `$user.id`가 빠져 있어 canonical user ID와 파생 `user` 검색 Tag에 원본이 유지됐다.
+- `$user.id` 제거 selector를 추가하고 비동기 invalidation 완료 후 cache 재계산과 Relay reload를 자동화했다.
 
-따라서 현재 PoC에서 서버 스크러빙은 활성화된 보조 방어선일 뿐, 단독 안전장치로 인정하지 않는다. 클라이언트 필터를 제거하거나 원본 개인정보 전송을 허용하면 안 된다. 이 Relay 설정 전달 문제는 실제 회사 적용 전 해결해야 하는 보안 차단 항목이다. 실패 probe가 만든 이벤트에는 실제 개인정보가 아니라 `FAKE-*` 합성값만 들어 있다.
+최종 서버 probe 이벤트 `7214906b525fdce91a34d1c23bbd0272`에서는 이름·전화·이메일·계좌·주민등록번호·CI·OTP·token·Cookie·송수취인·원문 body·form·거래 ID·가공 전 user ID 등 **18개 합성 원본이 모두 제거**됐고 `privacy-scrub-test`만 유지됐다. cache를 의도적으로 이전 상태로 만든 복구 시험과 연속 probe도 통과했다.
+
+실패 probe가 만든 이벤트에는 실제 개인정보가 아니라 `FAKE-*` 합성값만 들어 있다. 서버 probe가 통과해도 클라이언트 최소수집 정책을 제거하지 않는다. 두 방어층은 서로 대체 관계가 아니라 우발적 누출을 줄이는 중첩 통제다.
+
+현재 서버 규칙은 값의 안전 여부를 추측하지 않고 `$user.id` 자체를 제거한다. 따라서 클라이언트 정책이 허용하는 `anon-*` ID도 최종 저장본에서는 제거되며 신규 이벤트의 “영향을 받은 사용자 수” 집계는 사용할 수 없다. 이 지표가 꼭 필요하면 단순 hash가 아닌 비밀키 HMAC 또는 무작위 매핑 ID를 애플리케이션 밖에서 발급하고, 보안 승인 후 이를 보존하는 별도 규칙과 원본 대입 공격 검증을 마련해야 한다. 기본값은 사용자 ID 미저장이다.
 
 Advanced 규칙에는 request URL 제거도 포함돼 있다. Relay 문제가 해결되어 이 규칙이 적용되면 URL 대신 `page` 같은 사전 정의된 안전한 Tag를 진단에 사용한다.
 
@@ -121,7 +128,7 @@ Advanced 규칙에는 request URL 제거도 포함돼 있다. Relay 문제가 �
 - 새 SDK 통합이나 Sentry 버전 업그레이드 때 보안 테스트와 실제 저장 검증을 다시 실행한다.
 - Source map 업로드 토큰, API 토큰, DSN 파일은 Git에 커밋하지 않는다.
 - Session Replay를 켜야 한다면 별도 보안 심사와 mask/block selector 검증을 먼저 수행한다.
-- `--server-probe`가 통과하기 전에는 서버 필터만 믿는 애플리케이션을 운영에 반영하지 않는다.
+- 신규 프로젝트와 Sentry 업그레이드마다 `--server-probe`를 다시 통과시킨다.
 
 ## 구현 파일
 
@@ -133,12 +140,14 @@ Advanced 규칙에는 request URL 제거도 포함돼 있다. Relay 문제가 �
 - `scripts/configure-phase7-data-scrubbing.sh`: 조직·프로젝트 서버 설정
 - `scripts/phase7-sensitive-fields.json`: 추가 민감 필드
 - `scripts/phase7-relay-pii-config.json`: Advanced selector와 제거 rule
+- `scripts/refresh_phase7_relay_config.py`: DB 설정과 Relay project config cache 동기화 검증
 - `scripts/verify-phase7-data-scrubbing.sh`: 실제 저장본 자동 검증
 
 ## 공식 참고 자료
 
 - [React SDK configuration options](https://docs.sentry.io/platforms/javascript/guides/react/configuration/options/)
 - [React SDK breadcrumbs](https://docs.sentry.io/platforms/javascript/guides/react/enriching-events/breadcrumbs/)
+- [Advanced Data Scrubbing selector](https://docs.sentry.io/security-legal-pii/scrubbing/advanced-datascrubbing/)
 - [Update an organization API](https://docs.sentry.io/api/organizations/update-an-organization/)
 - [Update a project API](https://docs.sentry.io/api/projects/update-a-project/)
 - [Self-hosted Sentry](https://develop.sentry.dev/self-hosted/)
