@@ -1,0 +1,10 @@
+services:
+  nginx:
+    networks:
+      - default
+      - phase8-ingress
+
+networks:
+  default:
+    internal: true
+  phase8-ingress:
