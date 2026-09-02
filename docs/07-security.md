@@ -2,152 +2,150 @@
 
 ## 목표
 
-실제 개인정보를 사용하지 않고 이름, 연락처, 계좌·주민등록 식별값, 인증정보, 금융 거래 원문을 합성 데이터로 주입한 뒤 다음 방어층을 검증한다.
+실제 개인정보 없이 합성 데이터만 사용해 세 방어층을 검증한다.
 
-1. React SDK가 전송 직전에 민감정보를 제거한다.
-2. Self-hosted Sentry의 조직·프로젝트 스크러빙을 활성화한다.
-3. 실제 저장 이벤트에서 합성 민감값이 남지 않았는지 API로 검사한다.
+1. React SDK가 envelope 생성 직전에 불필요한 원문을 제거한다.
+2. Relay가 클라이언트 필터를 우회한 이벤트도 다시 정제한다.
+3. 개인정보 원문이 꼭 필요한 조회는 Sentry 밖 JIT 게이트에서만 수행한다.
 
-이 PoC의 기본 원칙은 “수집 후 숨김”이 아니라 “필요하지 않은 원문은 SDK envelope에 넣지 않음”이다.
+기본 원칙은 “수집 후 숨김”이 아니라 “진단에 필요 없는 원문을 수집하지 않음”이다.
 
 ## 비수집 대상
 
-| 분류 | 예시 키 | 처리 |
+| 분류 | 예시 | 처리 |
 | --- | --- | --- |
-| 개인 식별 | name, phone, email, CI, 주민등록번호 | 키 제거 및 문자열 패턴 정제 |
-| 금융 식별 | account_number, sender, recipient, transaction_id | 키 제거 |
-| 인증정보 | OTP, 인증코드, access/refresh token | 키 제거 및 Bearer 문자열 정제 |
-| HTTP 비밀 | Authorization, Cookie, 전체 headers | 제거 |
-| 원문 payload | request/response body, API 원문, 전체 form | 제거 |
-| URL 입력값 | query string, fragment | URL 경로만 유지 |
-| 사용자 정보 | email, username, IP, 가공 전 ID | 제거 |
+| 개인 식별 | 이름, 전화, 이메일, CI, 주민번호 | key 제거·문자열 정제 |
+| 금융 식별 | 계좌, 송수취인, 거래 ID | 제거 |
+| 인증 | OTP, 인증코드, access/refresh token | 제거 |
+| HTTP 비밀 | Authorization, Cookie, headers, body | 제거 |
+| URL 입력값 | query string, fragment | 경로만 유지 또는 Relay에서 URL 제거 |
+| 사용자 정보 | email, username, IP, 원본 ID | 제거 |
 
-사용자 ID는 `anon-` 또는 `anon_`으로 시작하는 8자 이상의 사전 익명화 ID만 SDK 필터가 허용한다. 실제 고객번호, CI, 계좌번호를 단순 hash한 값은 원본 대입 공격 위험이 있으므로 익명 ID로 간주하지 않는다. 별도 비밀키를 사용하는 HMAC 또는 무작위 매핑 ID가 필요하다.
+단순 hash는 원본 대입 공격에 취약하므로 허용하지 않는다. 내부 HMAC 서비스가 발급한 `dbg_v1_[A-Za-z0-9_-]{20,80}`만 상관관계 ID로 저장한다.
 
 ## React SDK 정책
 
-`test-app/src/security/securityPolicy.core.ts`의 순수 함수가 SDK 전송 정책을 담당한다.
+구현은 `test-app/src/security/securityPolicy.core.ts`와 `test-app/src/sentry/replay.ts`에 있다.
 
 - `sendDefaultPii: false`
-- `beforeSend`: user, request, extra, context, tag, breadcrumb, exception 문자열 정제
-- `beforeBreadcrumb`: console과 입력 변경 breadcrumb 폐기, URL·본문·헤더 정제
-- `ignoreErrors`: ResizeObserver와 비정상 Promise rejection 형식만 제외. 네트워크 실패는 장애 신호이므로 수집
-- `replaysSessionSampleRate: 0`, `replaysOnErrorSampleRate: 0`
-- Replay integration 미등록
-- `tracePropagationTargets`: localhost, 127.0.0.1, 동일 출처 상대 경로만 허용
+- `beforeSend`: user/request/extra/context/tag/breadcrumb/exception 정제
+- `beforeBreadcrumb`: console·입력 변경 폐기, URL·본문·header 정제
+- `ignoreErrors`: 알려진 브라우저 noise만 제외
+- `tracePropagationTargets`: localhost, 127.0.0.1, 동일 출처 상대 경로
+- 로컬 Replay ON, production explicit opt-in
+- Replay의 모든 text/input/media 마스킹
+- `[data-sentry-block]`, `[data-private]` 전체 차단
+- Replay network body/header 상세 수집 금지
 
-환경별 기본 trace 표본율은 local/development 1.0, SIT/UAT/staging 0.5, production 0.1이다. `VITE_SENTRY_TRACES_SAMPLE_RATE`로 0~1 범위 값을 명시할 수 있고 `VITE_SENTRY_ENABLED=false`로 SDK 전송을 끌 수 있다. 개인정보·Replay 정책은 환경과 무관하게 항상 보수적으로 유지한다.
+환경별 trace 기본 표본율은 local 1.0, SIT/UAT/staging 0.5, production 0.1이다. Replay 로컬 표본율 1.0은 PoC 검증용이며 운영 보장값이 아니다.
 
-## 합성 개인정보 테스트 UI
+## Relay 서버 정책
 
-테스트 앱의 `민감정보 비수집 검증` 섹션은 사용자가 자유롭게 개인정보를 입력하는 폼을 제공하지 않는다. 다음 규칙의 고정 합성값만 사용한다.
-
-- 예약 이메일 도메인: `example.invalid`
-- 명시적 합성 접두사: `FAKE-*`
-- 문서용 전화·계좌·주민등록 형식: 실제 사용자와 연결되지 않는 0 중심 값
-
-버튼을 누르면 격리 scope에 합성 user/context/breadcrumb를 넣고 `[PoC] Phase 7 privacy scrub verification` 오류를 전송한다. `beforeSend`가 실행되면 안전한 `security_phase`, `test_case`, `safe_business_state`만 남는다.
-
-실제 개인정보, 실제 토큰, 실제 계좌·거래 식별자를 이 화면이나 검증 스크립트에 입력하면 안 된다.
-
-## Self-hosted 서버 설정
-
-다음 명령은 토큰 값을 출력하지 않고 조직과 `frontend-poc` 프로젝트에 정책을 병합한다.
+다음 명령은 조직과 네 프론트 프로젝트에 동일한 정책을 적용하고 project config cache를 갱신한 뒤 Relay를 재시작한다.
 
 ```bash
 ./scripts/configure-phase7-data-scrubbing.sh
 ```
 
-적용 결과:
+대상 프로젝트:
 
-- 조직: data scrubber ON, default scrubber ON, IP scrubbing ON
-- 프로젝트: data scrubber ON, default scrubber ON, IP scrubbing ON
-- 추가 민감 필드: 조직·프로젝트 각각 49개
-- Advanced Data Scrubbing: 프로젝트 selector 58개
-- 기존 Advanced rule이 있다면 덮어쓰지 않고 rule/application을 병합
-- 비동기 invalidation이 끝난 뒤 Relay project config cache를 최신 DB 값으로 재계산
-- Relay를 재기동해 새 project config를 즉시 로드
+- `frontend-poc`
+- `frontend-membership`
+- `frontend-remittance`
+- `frontend-payment`
 
-현재 토큰은 읽기 권한만 있어 조직 PUT API가 403을 반환한다. 스크립트는 Self-hosted 컨테이너의 공식 Django 모델과 Relay 설정 계산 경로를 사용하고, 적용 결과는 다시 읽기 API로 확인한다. SaaS 환경에서는 이 관리 셸 경로를 사용할 수 없으며 `org:write`/`project:write` 토큰 또는 관리자 UI가 필요하다.
+각 프로젝트의 현재 적용값은 data scrubber/default/IP ON, 민감 필드 49개, Advanced selector 58개다. `$user.id`에는 “모두 제거”가 아니라 승인 형식 외 전체 값을 제거하는 pattern rule을 적용한다. 따라서 원본 ID는 제거되고 `dbg_v1_*`만 보존된다.
 
-설정 반영 중 Relay와 의존 관계인 nginx가 함께 재시작되므로 수 초간 UI·ingest가 끊길 수 있다. 운영에서는 변경 시간에 실행하고 종료 직후 서버 probe까지 통과해야 완료로 본다.
+설정 변경 중 Relay와 nginx가 재시작되어 수 초간 UI·ingest가 끊길 수 있다. 운영에서는 변경 창구와 rollback 절차를 둔다.
 
-## 자동 검증 결과
+## 가명 ID 발급
 
-### 클라이언트 정책
+`internal-observability/identity-core.mjs`가 원본 UUID를 HMAC-SHA256으로 변환한다.
 
-보안 정책 테스트 8개가 다음을 확인한다.
+- 같은 UUID와 key → 같은 가명 ID
+- 원본 UUID 저장 없음
+- SDK와 Relay 양쪽에서 형식 검증
+- 테스트 앱에서 디버깅 조회 ID를 의도적으로 표시
 
-- 전체 합성 민감값 제거
-- request header/body/query 제거와 URL query/hash 제거
-- 사전 익명화 사용자 ID만 허용
-- console·입력 breadcrumb 폐기
-- 환경별 trace 표본율과 Replay 0%
-- 합성 이벤트 UI의 scope와 flush 흐름
+로컬 기본 secret은 합성 PoC 전용이다. 운영에서는 KMS/HSM, key version, rotation, 접근 감사가 필요하다.
 
-프로젝트 전체 결과는 7개 테스트 파일, 29개 테스트 통과다. typecheck, ESLint, production build도 통과했다.
+## JIT 개인정보 조회
 
-### 실제 저장 이벤트
+`privacy-gate.mjs`는 Sentry 밖에서 다음을 강제한다.
+
+- 가명 ID, 조회 사유, 승인 티켓
+- 5분 one-time challenge, 최대 5회 시도
+- 사용자에 고정된 10분 세션
+- 즉시 종료 및 사용자 전환/화면 해제 시 revoke
+- code/token을 제외한 감사 기록
+- `synthetic-poc-adapter` 합성 프로필만 반환
+
+운영에서는 SSO/MFA, rate limit, TLS, 실제 최소 필드 adapter, append-only 감사 저장소로 교체해야 한다. 조회 결과는 Sentry Tag·Context·Log·Replay에 복사하지 않는다.
+
+## 자동 저장 검증
+
+### 클라이언트 정제
 
 ```bash
 ./scripts/verify-phase7-data-scrubbing.sh
 ```
 
-이 명령은 테스트 앱의 실제 `sanitizeSentryEvent` 함수를 Node에서 실행해 합성 원본을 정제하고, envelope를 로컬 Sentry에 전송한 뒤 Event Details API 저장본을 검사한다.
+실제 `sanitizeSentryEvent`를 통과한 합성 이벤트를 보내 저장본에서 18개 원본 민감값 부재와 안전한 `privacy-scrub-test` 유지를 확인한다.
 
-- 최종 검증 이벤트 ID: `7fb6f652341cac6a02e2d6223d8909e0`
-- 이름·전화·이메일·계좌·주민등록번호·CI·OTP·토큰·Cookie·송수취인·API 원문·폼·거래 ID·가공 전 user ID 등 18개 원본: 없음
-- 안전한 `privacy-scrub-test`: 유지
-
-## 서버 단독 probe 해결과 검증
+### Relay 서버 단독 방어
 
 ```bash
 ./scripts/verify-phase7-data-scrubbing.sh --server-probe
 ```
 
-이 옵션은 클라이언트 필터를 고의로 우회해 합성 원본을 Relay에 직접 보낸다. 처음에는 실제 내부 Relay 수집 경로에서 합성 원본이 저장돼 probe가 실패했다.
+SDK를 우회한 원본 이벤트를 Relay에 직접 보내 원본 사용자 ID 포함 18개 합성 민감값이 모두 제거되는지 확인한다. 최종 재검증 이벤트 ID는 `c62ac9905eb4b0cccedc7197b9f78901`이다.
 
-- 첫 실패에서는 관리 shell이 갱신한 DB 설정과 Relay가 사용하는 Redis project config cache가 달랐다.
-- cache를 최신 DB 값으로 재계산하자 18개 중 17개가 제거됐고 `user.id`만 남았다.
-- Advanced 설정에 `$user.id`가 빠져 있어 canonical user ID와 파생 `user` 검색 Tag에 원본이 유지됐다.
-- `$user.id` 제거 selector를 추가하고 비동기 invalidation 완료 후 cache 재계산과 Relay reload를 자동화했다.
+### 승인 가명 ID 보존
 
-최종 서버 probe 이벤트 `7214906b525fdce91a34d1c23bbd0272`에서는 이름·전화·이메일·계좌·주민등록번호·CI·OTP·token·Cookie·송수취인·원문 body·form·거래 ID·가공 전 user ID 등 **18개 합성 원본이 모두 제거**됐고 `privacy-scrub-test`만 유지됐다. cache를 의도적으로 이전 상태로 만든 복구 시험과 연속 probe도 통과했다.
+```bash
+./scripts/verify-phase7-data-scrubbing.sh --identity-probe
+```
 
-실패 probe가 만든 이벤트에는 실제 개인정보가 아니라 `FAKE-*` 합성값만 들어 있다. 서버 probe가 통과해도 클라이언트 최소수집 정책을 제거하지 않는다. 두 방어층은 서로 대체 관계가 아니라 우발적 누출을 줄이는 중첩 통제다.
+같은 민감값 제거를 확인하면서 승인된 `dbg_v1_*` ID는 저장되는지 검사한다. 최종 재검증 이벤트 ID는 `99d2c1d5e2fc970e1bca29e2b2f6a7a2`다.
 
-현재 서버 규칙은 값의 안전 여부를 추측하지 않고 `$user.id` 자체를 제거한다. 따라서 클라이언트 정책이 허용하는 `anon-*` ID도 최종 저장본에서는 제거되며 신규 이벤트의 “영향을 받은 사용자 수” 집계는 사용할 수 없다. 이 지표가 꼭 필요하면 단순 hash가 아닌 비밀키 HMAC 또는 무작위 매핑 ID를 애플리케이션 밖에서 발급하고, 보안 승인 후 이를 보존하는 별도 규칙과 원본 대입 공격 검증을 마련해야 한다. 기본값은 사용자 ID 미저장이다.
+server probe와 identity probe는 서로 반대 조건을 확인하므로 항상 함께 실행한다.
 
-Advanced 규칙에는 request URL 제거도 포함돼 있다. Relay 문제가 해결되어 이 규칙이 적용되면 URL 대신 `page` 같은 사전 정의된 안전한 Tag를 진단에 사용한다.
+## Replay 별도 검증
+
+오류 이벤트의 Relay probe가 Replay recording을 대신하지 않는다. 운영 전 다음 합성 원문을 DOM에 넣고 실제 Replay 저장본과 재생 화면에서 0건인지 검사한다.
+
+- 이름·전화·이메일·계좌·주민번호 형식
+- OTP·token·Cookie 형식
+- 인증/CDD 키패드와 개인정보 JIT 영역
+- navigation query/fragment
+- request/response body
+
+하나라도 나타나면 Replay를 즉시 끄고 해당 segment의 삭제·보존 범위를 조사한다.
 
 ## 운영 체크리스트
 
-- 실제 입력 폼 전체나 API 원문을 `setContext`, `setExtra`, breadcrumb에 넣지 않는다.
-- 사용자 입력값을 Error message나 exception 문자열에 보간하지 않고 고정 오류 코드·메시지를 사용한다. 이름은 자유 문자열만으로 안정적으로 탐지할 수 없다.
-- 민감한 값은 Tag로 절대 만들지 않는다. Tag는 검색 인덱스와 대시보드 차원이 된다.
-- 새 SDK 통합이나 Sentry 버전 업그레이드 때 보안 테스트와 실제 저장 검증을 다시 실행한다.
-- Source map 업로드 토큰, API 토큰, DSN 파일은 Git에 커밋하지 않는다.
-- Session Replay를 켜야 한다면 별도 보안 심사와 mask/block selector 검증을 먼저 수행한다.
-- 신규 프로젝트와 Sentry 업그레이드마다 `--server-probe`를 다시 통과시킨다.
+- 입력 form/API 원문을 Context, Extra, breadcrumb에 넣지 않는다.
+- 사용자 값을 exception message에 보간하지 않는다.
+- 개인정보를 검색 인덱스인 Tag로 만들지 않는다.
+- 신규 프로젝트 생성 직후 Phase 7 설정을 적용한다.
+- SDK/Sentry 업그레이드 때 두 Relay probe와 Replay probe를 재실행한다.
+- DSN 외 auth token, source map token, HMAC key를 Git에 저장하지 않는다.
+- JIT audit와 Sentry 조직 audit를 정기 검토한다.
 
 ## 구현 파일
 
-- `test-app/src/security/securityPolicy.core.ts`: 전송 직전 순수 정제 정책
-- `test-app/src/security/securityTest.core.ts`: 합성 데이터 fixture
-- `test-app/src/security/useSecurityTest.ts`: 격리 scope 이벤트 전송
-- `test-app/src/security/SecurityTestSection.tsx`: 보안 검증 UI
-- `test-app/src/security/*.test.ts*`: 정책·사용자 흐름 테스트
-- `scripts/configure-phase7-data-scrubbing.sh`: 조직·프로젝트 서버 설정
-- `scripts/phase7-sensitive-fields.json`: 추가 민감 필드
-- `scripts/phase7-relay-pii-config.json`: Advanced selector와 제거 rule
-- `scripts/refresh_phase7_relay_config.py`: DB 설정과 Relay project config cache 동기화 검증
-- `scripts/verify-phase7-data-scrubbing.sh`: 실제 저장본 자동 검증
+- `test-app/src/security/securityPolicy.core.ts`: SDK 전송 정제
+- `test-app/src/sentry/replay.ts`: Replay 마스킹·차단
+- `internal-observability/identity-core.mjs`: HMAC 가명 ID
+- `internal-observability/privacy-gate.mjs`: 합성 JIT 게이트
+- `scripts/phase7-relay-pii-config.json`: Relay rule/application
+- `scripts/configure-phase7-data-scrubbing.sh`: 네 프로젝트 설정
+- `scripts/refresh_phase7_relay_config.py`: Relay cache 갱신
+- `scripts/verify-phase7-data-scrubbing.sh`: 저장본 probe
 
 ## 공식 참고 자료
 
-- [React SDK configuration options](https://docs.sentry.io/platforms/javascript/guides/react/configuration/options/)
-- [React SDK breadcrumbs](https://docs.sentry.io/platforms/javascript/guides/react/enriching-events/breadcrumbs/)
-- [Advanced Data Scrubbing selector](https://docs.sentry.io/security-legal-pii/scrubbing/advanced-datascrubbing/)
-- [Update an organization API](https://docs.sentry.io/api/organizations/update-an-organization/)
-- [Update a project API](https://docs.sentry.io/api/projects/update-a-project/)
+- [React SDK configuration](https://docs.sentry.io/platforms/javascript/guides/react/configuration/options/)
+- [Session Replay privacy](https://docs.sentry.io/platforms/javascript/guides/react/session-replay/privacy/)
+- [Relay PII configuration](https://getsentry.github.io/relay/relay_pii/index.html)
 - [Self-hosted Sentry](https://develop.sentry.dev/self-hosted/)

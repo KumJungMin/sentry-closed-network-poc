@@ -1,274 +1,164 @@
 # 프론트엔드 디버깅 기능·화면 사용 안내
 
-## 이 문서의 사용법
+## 기준 환경
 
-아래 주소는 현재 설치된 Self-hosted Sentry 26.8.0, 조직 `sentry`, 프로젝트 `frontend-poc` 기준이다. 다른 회사 환경에서는 호스트, 조직 slug, 프로젝트 ID를 바꾼다.
+- 테스트 앱: `http://127.0.0.1:5173`
+- 내부 분석/JIT API: `http://127.0.0.1:4318`
+- Sentry: `http://127.0.0.1:9000`
+- 조직: `sentry`
+- 기본 프로젝트: `frontend-poc` (ID 2)
+- 서비스 프로젝트: membership ID 3, remittance ID 4, payment ID 5
 
-- 기준 호스트: `http://127.0.0.1:9000`
-- 조직 slug: `sentry`
-- 프로젝트 ID: `2`
-- 프로젝트 slug: `frontend-poc`
-
-Sentry의 영문 메뉴가 익숙하지 않은 개발자는 먼저 이 문서의 “오류 한 건 추적 순서”를 따라가면 된다. Chrome 번역을 사용해도 검색 필드와 Tag 이름은 문서에 적힌 영문 그대로 입력한다.
+먼저 `test-app`에서 `pnpm analytics`와 `pnpm dev`를 각각 실행한다. Sentry와 Docker 상태는 `./scripts/check-poc.sh`로 확인한다.
 
 ## 빠른 화면 목록
 
-| 목적 | 화면 | 주소 | 현재 상태 |
-| --- | --- | --- | --- |
-| 새 오류·반복 오류 확인 | Issues | `http://127.0.0.1:9000/organizations/sentry/issues/?project=2` | 사용 가능 |
-| 구조화 로그 검색 | Explore > Logs | `http://127.0.0.1:9000/organizations/sentry/explore/logs/?project=2` | 서버 화면/API 있음, 앱 전송 설정 필요 |
-| Trace와 Span 확인 | Explore > Traces | `http://127.0.0.1:9000/organizations/sentry/explore/traces/?project=2` | 사용 가능 |
-| Session Replay | Explore > Replays | `http://127.0.0.1:9000/organizations/sentry/explore/replays/?project=2` | 서버 기능 있음, 앱은 정책상 OFF |
-| 릴리스별 오류·회귀 | Releases | `http://127.0.0.1:9000/organizations/sentry/explore/releases/?project=2` | 사용 가능 |
-| 프론트 성능 개요 | Insights > Frontend | `http://127.0.0.1:9000/organizations/sentry/insights/frontend/?project=2` | 사용 가능 |
-| 페이지 Web Vitals | Insights > Frontend > Web Vitals | `http://127.0.0.1:9000/organizations/sentry/insights/frontend/pageloads/?project=2` | 사용 가능 |
-| 프론트 안정성 | Dashboard 1 | `http://127.0.0.1:9000/organizations/sentry/dashboard/1/` | 구현 완료 |
-| 서비스·업무 오류 | Dashboard 2 | `http://127.0.0.1:9000/organizations/sentry/dashboard/2/` | 구현 완료 |
-| API·Web Vitals | Dashboard 3 | `http://127.0.0.1:9000/organizations/sentry/dashboard/3/` | 구현 완료 |
-| 알림·Detector | Monitors | `http://127.0.0.1:9000/organizations/sentry/monitors/` | 규칙 설정 필요 |
-| Source map 업로드 확인 | Project Settings > Source Maps | `http://127.0.0.1:9000/settings/sentry/projects/frontend-poc/source-maps/` | 사용 가능 |
-| DSN 확인 | Project Settings > Client Keys | `http://127.0.0.1:9000/settings/sentry/projects/frontend-poc/keys/` | 사용 가능 |
-| Replay 프로젝트 설정 | Project Settings > Replays | `http://127.0.0.1:9000/settings/sentry/projects/frontend-poc/replays/` | 승인 전 변경 금지 |
-| 언어·시간대 | Account Details | `http://127.0.0.1:9000/settings/account/details/` | 한국어 선택지 없음 |
-| 조직 감사 기록 | Audit Log | `http://127.0.0.1:9000/settings/sentry/audit-log/` | 운영 점검용 |
+| 목적 | 주소 | 사용법 |
+| --- | --- | --- |
+| 모든 오류 | `http://127.0.0.1:9000/organizations/sentry/issues/?project=2` | project/environment/release 후 Tag 검색 |
+| 구조화 Logs | `http://127.0.0.1:9000/organizations/sentry/explore/logs/?project=2` | message, service, page로 필터 |
+| Trace/Span | `http://127.0.0.1:9000/organizations/sentry/explore/traces/?project=2` | trace 또는 `ui.funnel` op 확인 |
+| Session Replay | `http://127.0.0.1:9000/organizations/sentry/explore/replays/?project=2` | user.id, 오류, rage/dead click 검색 |
+| Frontend Insights | `http://127.0.0.1:9000/organizations/sentry/insights/frontend/?project=2` | 페이지·API 성능 개요 |
+| Web Vitals | `http://127.0.0.1:9000/organizations/sentry/insights/frontend/pageloads/?project=2` | page score와 vital 분포 분석 |
+| Dashboard 1 안정성 | `http://127.0.0.1:9000/organizations/sentry/dashboard/1/` | 전체·사용자·미해결·release |
+| Dashboard 2 서비스 | `http://127.0.0.1:9000/organizations/sentry/dashboard/2/` | service/channel/error_code 분해 |
+| Dashboard 3 성능 | `http://127.0.0.1:9000/organizations/sentry/dashboard/3/` | Score, FCP/LCP/INP/CLS/TTFB |
+| Dashboard 4 일간 | `http://127.0.0.1:9000/organizations/sentry/dashboard/4/` | 최근 24시간 |
+| Dashboard 5 주간 | `http://127.0.0.1:9000/organizations/sentry/dashboard/5/` | 최근 7일 |
+| Dashboard 6 월간 | `http://127.0.0.1:9000/organizations/sentry/dashboard/6/` | 최근 30일 |
+| Source Maps | `http://127.0.0.1:9000/settings/sentry/projects/frontend-poc/source-maps/` | release와 artifact bundle 확인 |
+| Client Keys/DSN | `http://127.0.0.1:9000/settings/sentry/projects/frontend-poc/keys/` | DSN 복사, Git 저장 금지 |
+| Replay 설정 | `http://127.0.0.1:9000/settings/sentry/projects/frontend-poc/replays/` | 보존·접근 정책 확인 |
+| Sentry 감사 로그 | `http://127.0.0.1:9000/settings/sentry/audit-log/` | 조직 설정 변경 점검 |
 
-메뉴 개편 시에도 위 주소의 핵심 route는 설치된 26.8.0 소스에서 확인한 값이다. `/organizations/sentry/replays/`처럼 구형 주소는 현재 Explore 주소로 redirect될 수 있다.
+## 기능별 사용법
 
-## 오류 한 건 추적 순서
+### 1. Sentry 한국어 표시
 
-### 1. Issues에서 범위를 줄인다
+1. Chrome에서 `chrome://extensions`를 연다.
+2. 개발자 모드를 켜고 **압축해제된 확장 프로그램 로드**를 누른다.
+3. 저장소의 `browser-extension` 폴더를 선택한다.
+4. Sentry 탭을 새로고침한다.
 
-Issues를 열고 프로젝트, 환경, 기간을 먼저 고른다. 검색식은 다음 순서로 추가한다.
+메뉴·버튼은 한국어가 되지만 검색 필드와 Tag는 영문 그대로 쓴다. 번역 추가는 `browser-extension/dictionary.js`에 정확한 원문 쌍을 추가한다.
 
-```text
-is:unresolved service:membership page:signup-phone
-```
+### 2. Session Replay
 
-필요하면 다음 Tag도 사용한다.
+1. 테스트 앱에서 `가명 ID 연결`을 실행한다.
+2. 가입 화면·로그·오류 버튼을 조작한다.
+3. Explore > Replays에서 `user.id:dbg_v1_...`로 검색한다.
+4. timeline과 Issue/Trace 연결을 확인한다.
 
-- `error_code:PHONE_VERIFICATION_TIMEOUT`
-- `release:frontend-poc@0.1.0`
-- `flow_step:phone-verification`
-- `channel:hana-ez`
-- `browser.name:Chrome`
+텍스트·입력·미디어가 원문으로 보이거나 개인정보 게이트 영역이 재생되면 즉시 `VITE_SENTRY_REPLAY_ENABLED=false`로 끄고 저장 범위를 조사한다.
 
-오류 이벤트가 많은 순서와 영향 사용자 수가 많은 순서는 의미가 다르다. 현재 PoC는 Relay가 `user.id`를 제거하므로 영향 사용자 수가 0인 것이 정상이다.
+### 3. 가입 퍼널·화면별 이탈률
 
-### 2. Issue 상세에서 stack trace를 먼저 본다
+테스트 앱의 **가입 퍼널과 화면별 이탈률**에서 플로우를 시작한 뒤 각 화면에서 **다음 화면** 또는 **여기서 이탈**을 누른다. 우측 내부 집계가 도달·이탈 사용자 수를 즉시 갱신한다.
 
-Issue 제목을 열고 다음을 확인한다.
-
-1. 오류 발생 파일·함수·코드 줄이 원본 TypeScript로 복원됐는지
-2. 첫 발생/마지막 발생 시각과 release
-3. environment, service, page, error_code Tag
-4. 동일 Issue의 이벤트 빈도
-5. 오류가 재발한 regression인지
-
-stack이 minified 파일 한 줄만 가리키면 Source map 업로드와 SDK의 `release` 일치를 먼저 해결한다. Source map 화면에서 artifact bundle이 존재하는지 확인하고 [업로드 스크립트](../scripts/upload-test-app-sourcemaps.sh)를 다시 점검한다.
-
-### 3. Breadcrumb로 직전 행동을 복원한다
-
-Issue 상세의 Breadcrumbs에서 navigation, fetch/XHR, 업무 단계 순서를 본다. 이 PoC는 다음처럼 원문 대신 안전한 상태만 남긴다.
+Sentry에서는 Explore > Traces에서 다음으로 원인을 찾는다.
 
 ```text
-송금 화면 진입
-금액 입력 완료 (amount_included=false)
-수취인 입력 완료 (recipient_data_included=false)
-수취인 검증 API 요청 (endpoint_alias=recipient-validation)
-검증 실패 (error_code=...)
-오류 발생
+span.op:ui.funnel service:membership
 ```
 
-고객 이름, 입력값, URL query, request/response body가 보이면 정상 기능이 아니라 개인정보 사고 후보이므로 캡처·공유를 중단하고 보안 담당자에게 알린다.
+정확한 이탈률은 테스트 앱/내부 분석 API, 오류 원인은 Sentry를 기준으로 한다.
 
-### 4. 관련 Trace를 확인한다
+### 4. 오류와 구조화 Logs
 
-Issue 상세에 Trace가 연결되어 있으면 이를 열어 느린 구간, 실패 Span, 브라우저 요청과 백엔드 구간을 확인한다. 별도 검색은 Explore > Traces에서 한다.
-
-분산 Trace를 연결하려면 내부 API가 `sentry-trace`와 `baggage` header를 CORS에서 허용하고, 프론트 `tracePropagationTargets`가 실제 내부 API origin을 명시해야 한다. 모든 외부 origin에 header를 보내면 안 된다.
-
-### 5. Logs와 Replay는 필요한 경우만 연다
-
-Logs에서는 고정 메시지와 구조화 속성으로 앞뒤 상태를 검색한다. Replay가 승인·활성화된 환경이라면 Issue의 Replay preview 또는 Replays 화면에서 같은 시각의 세션을 본다.
-
-Replay에 인증·CDD·키패드 원문이 나타나면 즉시 기능을 끄고 유출 범위와 저장 세그먼트를 조사한다. 마스킹 해제 selector를 임의로 추가하지 않는다.
-
-### 6. Release와 배포 전후를 비교한다
-
-Releases에서 해당 release의 새 Issue와 first/last event를 확인한다. 배포 직후 급증했다면 이전 release와 비교하고, rollback 판단에는 오류율뿐 아니라 사용자 영향과 핵심 flow 실패도 함께 본다.
-
-## 요구 기능별 사용법
-
-### 한국어
-
-Account Details > Language에는 한국어가 없다. 개인 브라우저 번역과 이 문서를 사용한다. 번역된 검색 예시를 그대로 입력하지 말고 `service`, `page`, `is:unresolved` 같은 원래 필드를 유지한다.
-
-### Session Replay
-
-Explore > Replays에서 오류 수, rage/dead click, 브라우저 등으로 찾고 세션을 열어 timeline을 재생한다. 현재 테스트 앱에서는 데이터가 없는 것이 정상이다. Replay 도입 조건과 차단 대상은 [종합 설계](10-frontend-observability-design.md#2-session-replay)를 따른다.
-
-### 가입 플로우·이탈률
-
-Sentry Logs 또는 Dashboard에서 `flow_name:member-signup`을 적용하고 `flow_step`, `transition`으로 나눈다. 화면별 오류 원인 진단에는 Sentry를 쓰되 공식 이탈률은 내부 분석 화면에서 확인한다.
-
-Sentry 축소 지표를 사용할 때 화면에 다음 라벨을 붙인다.
+테스트 앱의 **실시간 오류·커스텀 로그**에서 info/warn/error 시나리오를 보낸다. Logs에서 다음 고정 message를 검색한다.
 
 ```text
-운영 진단용 근사치 · 재시도/새로고침 중복 포함 · 고객 원장 수치 아님
+frontend_action_completed
+frontend_api_slow
+frontend_payment_failed
 ```
 
-### 실시간 오류·로그
+error 시나리오는 Issues에도 `[PoC] synthetic payment timeout`을 만든다. 수 초 지연은 정상이며 envelope HTTP 200이 아니라 최종 검색 결과를 확인한다.
 
-- 예외와 업무 warning: Issues에서 새로고침 또는 자동 갱신으로 확인
-- 구조화 로그: Explore > Logs에서 level, message, service, page, trace로 검색
-- 수집 지연이 길면 브라우저 Network의 envelope 결과만 보지 말고 consumer health와 최종 저장 이벤트를 확인
+### 5. 서비스별 오류
 
-HTTP 200 ingest 응답은 처리 큐 접수만 뜻할 수 있으므로 최종 검색 가능 상태까지 확인한다.
+테스트 앱의 **서비스별 오류 탐색**에서 서비스를 선택하고 Issues/Logs/Traces를 연다. 수동 검색 예시는 다음과 같다.
 
-### 서비스별 오류
+```text
+is:unresolved service:payment
+service:membership page:signup.phone
+```
 
-Dashboard 2의 Errors by Service를 사용한다. Issues에서는 `service:<값>`으로 검색한다. 독립 배포 서비스라면 상단 Project selector로 프로젝트 자체를 선택한다.
+독립 배포 앱은 상단 project selector에서 `frontend-membership`, `frontend-remittance`, `frontend-payment`를 직접 선택한다.
 
-### 특정 사용자/가입 시도
+### 6. 특정 사용자 행동
 
-현재 기본 정책에서는 사용자 UUID 검색을 지원하지 않는다. 사고 티켓에 Sentry event ID, trace ID, 가입 시도용 `journey_id`를 기록해 같은 흐름을 연결한다. 가명 ID 모드가 승인된 뒤에만 `user.id:<debug_subject_id>` 검색을 제공한다.
+테스트 앱의 **특정 사용자 행동 추적**에서 합성 UUID를 가명 ID로 변환한다. 표시된 `dbg_v1_*` ID는 숨기지 않고 디버깅 조회 키로 사용한다.
 
-### 개인정보 조회
+- Issues: `user.id:<dbg_v1 ID>`
+- Replays: 같은 검색식으로 세션 재생
+- Traces: 같은 ID와 시각 범위로 흐름 확인
 
-Sentry 화면에서는 개인정보를 켜지 않는다. Issue에 보이는 opaque correlation ID를 별도 사내 개인정보 조회 게이트에 넣고 SSO/MFA/JIT 승인 후 최소 정보만 본다. 조회 결과를 Issue 댓글이나 Tag에 붙여 넣지 않는다.
+원본 UUID, 이메일, 전화번호는 Sentry 검색창에 넣지 않는다.
 
-### 일·주·월 오류
+### 7. 개인정보 ON/OFF
 
-Dashboard 1의 기간 선택기를 사용한다.
+가명 ID를 연결한 뒤 **개인정보 ON/OFF 조회 게이트**에서 사유와 티켓을 확인하고 승인을 요청한다. PoC는 합성 데이터이므로 일회용 코드를 화면에 되돌려주지만, 운영에서는 MFA/별도 인증 채널로 보내야 한다.
 
-- 일간: 최근 24시간
-- 주간: 최근 7일
-- 월간 추세: 최근 30일
-- 달력 월 보고: start/end를 해당 월 경계로 직접 지정
+인증 후 10분 동안 합성 이름·휴대폰·계좌·CDD 상태가 보인다. **즉시 조회 종료**, 사용자 변경, 화면 해제 중 하나가 발생하면 세션을 폐기한다. 감사 파일은 `.runtime/internal-observability/privacy-audit.ndjson`이며 code와 token은 기록하지 않는다.
 
-기간을 바꾼 뒤 `Total Errors`, `Unresolved Issues`, `New and Resolved Issues`, `Errors by Release`를 함께 본다.
+### 8. 일간·주간·월간 오류
 
-### 오류 순위·사용자 대비 비율
+Dashboard 4~6 중 목적에 맞는 기간을 연다. 오류 건수만 보지 말고 Affected Users, trend, Top Errors를 함께 본다. 월 보고가 달력 월 기준이면 Dashboard 6의 absolute date를 월 시작/종료로 바꾼다.
 
-Issues에서 빈도순으로 정렬하면 반복 오류 Top N을 볼 수 있다. 영향 사용자순은 가명 사용자 ID가 승인된 경우만 유효하다. 사용자 모수 대비 비율은 정상 세션 또는 내부 DAU가 필요하므로 Dashboard의 단순 오류 건수를 퍼센트로 오해하지 않는다.
+### 9. 오류 순위와 사용자 대비 비율
 
-### Web Vitals
+먼저 가명 ID를 연결한다. 테스트 앱의 **사용자 기준 오류 순위·이탈률**에서:
 
-Insights > Frontend > Web Vitals에서 다음 순서로 본다.
+1. **정상 사용자 모수 +1**로 payment 활성 사용자를 기록한다.
+2. **Sentry 오류 + 영향 사용자 기록**으로 실제 Sentry error와 내부 numerator를 함께 만든다.
+3. `영향 사용자/활성 사용자`와 가입 화면 이탈률을 확인한다.
 
-1. 프로젝트와 production 환경 선택
-2. 최소 표본 수 확인
-3. 전체 Performance Score와 LCP/FCP/INP/CLS/TTFB 확인
-4. 페이지별 table에서 낮은 점수 정렬
-5. 느린 페이지를 열어 span과 관련 Issue 확인
-6. release 또는 브라우저별로 재현 범위 축소
+`모수 없음`은 0%가 아니다. 운영에서는 버튼 대신 실제 인증/페이지 방문 backend 이벤트가 denominator를 공급해야 한다.
 
-Dashboard 3은 빠른 운영 화면이다. Web Vitals 정밀 분석은 Insights 화면을 사용한다.
+### 10. 페이지별 Web Vitals와 Performance Score
 
-## 추가로 유용한 프론트엔드 기능
+Dashboard 3에서 전체 score와 페이지 table을 빠르게 확인한다. 이상 페이지는 Web Vitals Insights에서 다음 순서로 좁힌다.
 
-### Source map과 원본 코드 stack
+1. production 환경과 release 선택
+2. 표본 수 확인
+3. 낮은 Score 또는 나쁜 LCP/INP/CLS 정렬
+4. browser/device/page별 범위 축소
+5. 관련 pageload trace와 resource/API span 확인
 
-난독화된 production bundle 오류를 원본 TypeScript/TSX 줄로 복원한다. 프론트 디버깅 효율에 가장 직접적인 기능이다.
+## 오류 한 건을 추적하는 표준 순서
 
-- 화면: Project Settings > Source Maps
-- 사용: artifact bundle 존재 여부 → event의 release 일치 → Issue stack의 원본 줄 순서로 확인
-- 주의: 생성된 `.map` 파일을 웹 서버가 일반 사용자에게 제공하지 않도록 hidden source map 또는 빌드 후 삭제를 사용
+1. Issues에서 `project → environment → release → service → page` 순으로 좁힌다.
+2. Source map이 적용된 첫 application frame을 확인한다.
+3. Breadcrumb에서 navigation·업무 단계·fetch 직전 상태를 복원한다.
+4. Trace에서 실패/지연 span을 찾는다.
+5. 같은 `user.id`의 Replay로 실제 행동 순서를 확인한다.
+6. 구조화 Logs에서 전후 상태를 검색한다.
+7. 개인정보가 꼭 필요한 경우에만 Sentry 밖 JIT 게이트를 연다.
+8. regression과 영향 사용자율을 보고 수정·rollback 우선순위를 정한다.
 
-### Issue grouping과 fingerprint
+## 추가 프론트엔드 디버깅 기능
 
-같은 원인의 반복 이벤트를 하나의 Issue로 묶는다. 지나치게 많이 합쳐지거나 같은 오류가 분리될 때만 fingerprint를 조정한다. 동적 사용자 입력을 오류 message에 넣으면 grouping이 폭발하므로 고정 오류 코드와 message를 쓴다.
+- Source map: minified stack을 원본 TS/TSX로 복원
+- Release/Regression: 배포 이후 재발 오류 구분
+- Breadcrumb: 오류 직전 사용자·업무 흐름 복원
+- Trace: 프론트→내부 API 병목 연결
+- Fingerprint: 동적 사용자 값 없이 안정적인 Issue grouping
+- Alert/Ownership: service·error_code 기반 담당팀 routing
+- Event JSON: UI에서 생략된 정제 필드 검증
+- Feature flag Tag: rollout별 회귀 상관관계 분석
 
-### Regression과 release 비교
+Sentry 자체 Kafka, ClickHouse, PostgreSQL, Relay, 디스크는 Sentry 내부 이벤트가 아니라 별도 Grafana/Prometheus 계열로 감시한다.
 
-해결한 Issue가 새 release에서 다시 발생했는지 확인한다. 모든 배포는 동일한 release 값을 SDK 초기화와 Source map 업로드에 사용해야 한다.
+## 운영 루틴
 
-### Tag와 Context
-
-- Tag: 검색·그룹·대시보드에 필요한 저카디널리티 문자열
-- Context: 한 이벤트 상세에서만 보는 구조화 진단 정보
-
-Context는 검색되지 않는다. 무엇이든 Tag로 복제하지 말고 검색 필요성과 개인정보 등급을 먼저 결정한다.
-
-### Breadcrumb
-
-오류 직전의 navigation, API, 업무 상태를 시간순으로 본다. 전체 Redux 상태나 form 값을 넣는 로그 저장소가 아니다.
-
-### Trace와 느린 작업
-
-페이지 로드, API, 긴 UI task, route 전환 시간을 Span으로 비교한다. `startSpan`으로 직접 측정할 때 이름과 `op`을 고정해 집계 가능하게 한다.
-
-### HTTP 요청 성능
-
-`http.client` Span이 있으면 endpoint alias별 요청량, 평균/p95 지연, 4xx/5xx 비율을 볼 수 있다. Dashboard 3에 위젯은 있지만 현재 PoC 표본에는 해당 Span이 없어서 빈 상태다. 실제 내부 API 호출과 CORS/trace propagation을 연결한 뒤 검증한다.
-
-### Alert, ownership, triage
-
-새 Issue, 오류 급증, 핵심 서비스 실패, Web Vital 악화를 Detector/Alert로 만든다. `service`와 `error_code`를 사용해 담당 팀에 라우팅한다. 폐쇄망에서 외부 Slack/PagerDuty를 가정하지 말고 사내 SMTP나 내부 webhook의 도달성을 따로 검증한다.
-
-### Event JSON
-
-Issue 상세의 event action에서 JSON을 열면 UI에 접힌 필드와 SDK payload를 확인할 수 있다. 개인정보 검증 시 화면만 보지 말고 최종 저장 JSON/API까지 검사한다.
-
-### Feature flag 상관관계
-
-새 UI를 flag로 배포한다면 평가 결과를 오류와 연결해 특정 flag 값에서만 회귀했는지 본다. flag 이름과 boolean/작은 enum만 기록하고 사용자 실험군 ID는 넣지 않는다. 설치 버전의 feature flag 화면 노출과 SDK 지원은 실제로 재검증한다.
-
-### Sentry 자체 인프라 모니터링
-
-Sentry UI가 열리는지만 감시해서는 Kafka, ClickHouse, PostgreSQL, Relay 장애를 놓칠 수 있다. Docker/호스트 CPU·메모리·디스크, consumer lag, container health는 별도 Prometheus/Grafana 또는 사내 관제에 넣는다.
-
-### 폐쇄망에서 제외할 기능
-
-- 외부 AI/Seer 기능은 망 외부 의존성과 데이터 반출 검증 전 사용하지 않는다.
-- 외부 GitHub, Slack, Jira 연동은 내부 설치 인스턴스 또는 승인된 프록시가 없으면 사용하지 않는다.
-- CDN에서 SDK를 내려받지 않고 패키지와 artifact를 사내 저장소로 반입한다.
-
-## 영문 메뉴 용어집
-
-| 영문 | 한국어 의미 |
-| --- | --- |
-| Issues | 같은 원인으로 묶인 오류 목록 |
-| Event | 실제 오류 발생 한 건 |
-| Affected Users | 해당 오류를 겪은 고유 사용자 수 |
-| Breadcrumbs | 오류 직전 행동·상태의 시간순 기록 |
-| Tags | 검색·집계 가능한 문자열 속성 |
-| Contexts | 이벤트 상세용 구조화 정보 |
-| Trace | 여러 서비스와 Span을 연결한 요청 흐름 |
-| Span | 흐름 안의 개별 작업과 소요 시간 |
-| Release | 배포 버전 |
-| Regression | 해결한 오류의 재발 |
-| Replay | 브라우저 세션 동작 재생 |
-| Web Vitals | LCP, FCP, INP, CLS, TTFB 등 사용자 체감 성능 |
-| Fingerprint | 이벤트를 Issue로 묶는 그룹 기준 |
-| Detector | 조건을 감시해 이상을 판정하는 규칙 |
-
-## 운영 점검 루틴
-
-### 매일
-
-- 새 Issue와 escalating/regressed Issue 확인
-- production 핵심 서비스 오류 Top N 확인
-- consumer/container health와 디스크 확인
-
-### 매주
-
-- 서비스·release별 오류 추세
-- 해결되지 않은 오래된 Issue 정리
-- 느린 페이지와 Web Vitals 회귀
-- 알림 noise와 누락 검토
-
-### 매월
-
-- 달력 월 기준 오류 영향, 신규/해결 Issue, MTTR 검토
-- 보관량, Replay 용량, sampling 조정
-- 권한·Replay 열람·개인정보 게이트 감사 로그 검토
-- SDK/Sentry 업그레이드와 보안 probe 계획
+- 매일: Dashboard 4, 새/미해결 Issue, error 영향 사용자율
+- 매주: Dashboard 5, release/browser/service 분포, Replay 표본과 마스킹
+- 매월: Dashboard 6, 보존량·디스크, JIT/조직 감사 로그, HMAC·token 정책
 
 ## 관련 문서
 
-- [종합 설계와 기능별 판정](10-frontend-observability-design.md)
-- [다른 프론트엔드 적용 Quick Guide](12-frontend-observability-quick-guide.md)
-- [기존 Dashboard와 실제 수집 결과](06-dashboards.md)
-- [개인정보·Relay 정책](07-security.md)
-- [폐쇄망 운영](08-closed-network.md)
+- [구현 설계](10-frontend-observability-design.md)
+- [다른 프로젝트 적용 Quick Guide](12-frontend-observability-quick-guide.md)
+- [개인정보 정책](07-security.md)

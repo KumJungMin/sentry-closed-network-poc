@@ -31,19 +31,19 @@
 - [폐쇄망 축소 테스트와 외부 의존성](docs/08-closed-network.md)
 - [회사 폐쇄망 도입·운영 가이드](docs/09-company-adoption.md)
 
-## 프론트엔드 디버깅 허브 확장 설계
+## 프론트엔드 디버깅 허브 구현
 
-- [한글 UI, Replay, 가입 퍼널, 사용자 추적, 개인정보 열람, 오류율, Web Vitals 설계](docs/10-frontend-observability-design.md)
+- [한글 UI, Replay, 가입 퍼널, 사용자 추적, JIT 개인정보 조회, 오류율, Web Vitals 구현 설계](docs/10-frontend-observability-design.md)
 - [프론트엔드 디버깅 기능·화면 주소·사용법](docs/11-frontend-debugging-guide.md)
 - [다른 React 프로젝트에 재현하는 파일별 Quick Guide](docs/12-frontend-observability-quick-guide.md)
 
-확장 설계는 Sentry를 오류·Replay·Trace·성능의 진단 허브로 사용한다. 정확한 사용자 기준 가입 이탈률은 내부 분석계에서 계산하고, 개인정보 원문은 Sentry에 저장하지 않으며 별도 SSO/MFA/JIT 조회 게이트에서만 열람하는 것을 기준안으로 한다. Replay와 가명 사용자 ID는 보안 승인 및 전용 저장 probe 전까지 OFF다.
+Sentry는 오류·Logs·Replay·Trace·성능의 진단 허브로 사용한다. 로컬 Replay는 전체 마스킹으로 활성화했고, `dbg_v1_*` HMAC 가명 ID는 SDK·Relay 양쪽 검증 후 보존한다. 정확한 가입 이탈률과 활성 사용자 대비 오류율은 망 내부 분석 서버에서 계산하며, 개인정보 원문은 Sentry가 아닌 별도 JIT 게이트에서만 합성 데이터로 검증한다.
 
 ## 최종 결론
 
 Phase 0~9가 모두 완료됐습니다. 외부 통신이 차단된 Sentry 서버에서 핵심 오류 수집·조회, Source map 업로드, 재시작과 데이터 재조회가 동작했습니다. 회사 도입 시 필요한 사양, 반입물, DNS/HTTPS, 백업·복구, 업데이트, 취약점 대응, 권한과 담당 업무는 [Phase 9 회사 적용 가이드](docs/09-company-adoption.md)에 정리했습니다.
 
-[Phase 7](docs/07-security.md)의 Relay 서버 단독 개인정보 제거 문제도 해결했습니다. Advanced 설정에 누락된 `$user.id` selector를 추가하고 project config cache 갱신을 자동화했으며, 합성 민감 원본 18개가 저장되지 않는 것을 실제 이벤트로 확인했습니다. 실제 회사 환경에서도 신규 프로젝트와 버전 업데이트마다 같은 검증을 반복해야 합니다.
+[Phase 7](docs/07-security.md)의 Relay 서버 단독 개인정보 제거 문제도 해결했습니다. 원본 `$user.id`는 제거하면서 승인된 `dbg_v1_*`만 보존하고, 네 프론트 프로젝트의 project config cache 갱신을 자동화했습니다. server/identity 저장 probe로 합성 민감 원본 18개 부재와 가명 ID 보존을 각각 확인했습니다.
 
 ## 재현 명령
 
@@ -51,6 +51,11 @@ Phase 0~9가 모두 완료됐습니다. 외부 통신이 차단된 Sentry 서버
 # Sentry와 테스트 앱 상태
 ./scripts/sentry.sh status
 curl -fsS http://127.0.0.1:9000/_health/
+
+# 테스트 앱: 별도 터미널 두 개
+cd test-app
+pnpm analytics
+pnpm dev
 
 # 폐쇄망 격리와 전체 검증
 ./scripts/phase8-network.sh isolate

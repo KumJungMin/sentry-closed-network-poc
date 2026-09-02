@@ -6,28 +6,35 @@ Self-hosted Sentry 26.8.0에서 실제로 저장되고 조회되는 데이터만
 
 - 프론트엔드 안정성: 전체 오류, 영향 사용자, 새 이슈, 미해결 이슈, 브라우저, 릴리스
 - 업무 오류: channel, service, partner, currency, process_step, error_code
-- API와 성능: HTTP 요청량·상태·지연, 느린 API, 페이지 로드, Web Vitals
+- API와 성능: HTTP 요청량·상태·지연, 느린 API, 페이지 로드, Web Vitals, Performance Score
+- 기간별 오류: 24시간, 7일, 30일 오류·영향 사용자·Top N
 - Tag와 Context의 검색·집계 차이
 
 대시보드 API 문서뿐 아니라 설치된 26.8.0 이미지의 Frontend Overview, Outbound API Requests, Web Vitals 사전 구성에 사용된 필드와 쿼리를 확인했다. 모든 생성 요청은 `validateOnly=1` 검증을 통과한 뒤 저장했다.
 
 ## 생성한 대시보드
 
-모든 대시보드는 `frontend-poc` 프로젝트와 최근 14일을 기본 범위로 저장했다.
+모든 대시보드는 `frontend-poc` 프로젝트를 범위로 저장했다. Dashboard 1~3은 최근 14일, 4~6은 제목의 기간을 기본값으로 사용한다.
 
 | ID | 제목 | 위젯 수 | 주요 데이터셋 |
 | --- | --- | ---: | --- |
 | 1 | PoC - Frontend Stability | 6 | Errors, Issues |
 | 2 | PoC - Business Error Breakdown | 6 | Errors |
-| 3 | PoC - API and Frontend Performance | 8 | Spans |
+| 3 | PoC - API and Frontend Performance | 9 | Spans |
+| 4 | PoC - Errors Daily (24h) | 4 | Errors |
+| 5 | PoC - Errors Weekly (7d) | 4 | Errors |
+| 6 | PoC - Errors Monthly (30d) | 4 | Errors |
 
 로컬 URL:
 
 - `http://127.0.0.1:9000/organizations/sentry/dashboard/1/`
 - `http://127.0.0.1:9000/organizations/sentry/dashboard/2/`
 - `http://127.0.0.1:9000/organizations/sentry/dashboard/3/`
+- `http://127.0.0.1:9000/organizations/sentry/dashboard/4/`
+- `http://127.0.0.1:9000/organizations/sentry/dashboard/5/`
+- `http://127.0.0.1:9000/organizations/sentry/dashboard/6/`
 
-정의는 `scripts/phase6-dashboards.json`, 생성 명령은 `scripts/create-phase6-dashboards.sh`에 있다. 스크립트는 실제 토큰을 출력하지 않고 Git에서 제외된 `test-app/.env.sentry-build-plugin`을 읽는다. 같은 제목이 이미 있으면 생성을 건너뛴다.
+정의는 `scripts/phase6-dashboards.json`, 적용 명령은 `scripts/create-phase6-dashboards.sh`에 있다. 스크립트는 실제 토큰을 출력하지 않고 Git에서 제외된 `test-app/.env.sentry-build-plugin`을 읽는다. 같은 제목이 있으면 PUT update하고 없으면 POST create한다.
 
 ```bash
 ./scripts/create-phase6-dashboards.sh
@@ -86,6 +93,7 @@ Spans 데이터셋에는 총 271개 Span이 있었다.
 | P75 INP | 32ms | 현재 버전에서 가능 |
 | P75 TTFB | 16.125ms | 현재 버전에서 가능 |
 | P75 CLS | 값 없음 | 기능은 가능하지만 현재 테스트에서 layout shift 표본이 없음 |
+| Performance Score | 수식 저장·API 재조회 성공 | `performance_score(measurements.score.total)` 지원 |
 | `span.op:http.client` | 0건 | 위젯은 지원하지만 현재 데이터로는 검증 불가 |
 
 설치된 26.8.0의 공식 Outbound API Requests 구성은 `span.op:http.client`, `span.status_code`, `span.duration`, `sentry.normalized_description`을 사용한다. 같은 필드로 API 요청량, 평균 지연, 4XX·5XX 비율, 느린 API 위젯을 만들었지만 현재 PoC 이벤트에는 `http.client` Span이 없으므로 빈 차트가 정상이다.
@@ -118,7 +126,7 @@ Context는 이벤트 한 건의 원인 분석에는 보이지만 검색·집계 
 
 ### 기능은 있으나 데이터 또는 설정이 더 필요
 
-- 영향 사용자: 개인정보를 넣지 않는 비식별 user ID 정책과 `setUser`가 필요
+- 영향 사용자: 내부 HMAC `dbg_v1_*` 발급과 SDK/Relay allowlist를 구현했으며 실제 트래픽 연결 필요
 - HTTP 실패·상태·평균 응답·느린 API: `http.client` Span 계측과 실제 API 트래픽이 필요
 - CLS: layout shift가 발생하는 테스트 또는 실제 표본이 필요
 - 장기 보관: Self-hosted의 retention, 디스크, ClickHouse 용량 정책을 별도로 결정해야 함
@@ -150,9 +158,10 @@ Sentry Dashboard는 오류와 Trace를 배포·릴리스·코드 문맥에 연�
 ### 성공
 
 - 대시보드 JSON과 Bash 문법 검사 통과
-- 20개 위젯 모두 dashboard `validateOnly` 통과
-- 대시보드 3개 생성 및 상세 API 재조회 성공
-- 생성 스크립트 재실행 시 3개 모두 중복 생성 없이 건너뜀
+- 33개 위젯이 포함된 대시보드 6개 모두 `validateOnly` 통과
+- 대시보드 1~6 생성·업데이트 및 상세 API 재조회 성공
+- 생성 스크립트 재실행 시 중복 없이 기존 ID update
+- Dashboard 3 저장본에서 Performance Score 수식 확인
 - Errors, Issues, Spans 실제 집계 응답 확인
 - Context 검색·집계 불가를 실제 0건 응답으로 재현
 - 토큰과 DSN을 출력하거나 대시보드 정의에 기록하지 않음
