@@ -187,13 +187,21 @@
         "layout": {"x": 4, "y": 4, "w": 2, "h": 1, "minH": 1}
       },
       {
+        "title": "Overall Performance Score",
+        "displayType": "big_number",
+        "widgetType": "spans",
+        "interval": "1h",
+        "queries": [{"name": "", "conditions": "has:measurements.score.total", "fields": ["performance_score(measurements.score.total)"], "aggregates": ["performance_score(measurements.score.total)"], "columns": [], "fieldAliases": ["Performance Score"], "orderby": ""}],
+        "layout": {"x": 0, "y": 5, "w": 6, "h": 1, "minH": 1}
+      },
+      {
         "title": "Web Vitals by Page",
         "displayType": "table",
         "widgetType": "spans",
         "interval": "1h",
         "limit": 20,
-        "queries": [{"name": "", "conditions": "span.op:[ui.interaction.click,ui.interaction.hover,ui.interaction.drag,ui.interaction.press,ui.webvital.cls,ui.webvital.lcp,pageload,\"\"]", "fields": ["transaction", "count()", "p75(browser.web_vital.lcp.value)", "p75(browser.web_vital.fcp.value)", "p75(browser.web_vital.inp.value)", "p75(browser.web_vital.cls.value)", "p75(browser.web_vital.ttfb.value)"], "aggregates": ["count()", "p75(browser.web_vital.lcp.value)", "p75(browser.web_vital.fcp.value)", "p75(browser.web_vital.inp.value)", "p75(browser.web_vital.cls.value)", "p75(browser.web_vital.ttfb.value)"], "columns": ["transaction"], "fieldAliases": ["Page", "Loads", "LCP", "FCP", "INP", "CLS", "TTFB"], "orderby": "-count()"}],
-        "layout": {"x": 0, "y": 5, "w": 6, "h": 4, "minH": 2}
+        "queries": [{"name": "", "conditions": "span.op:[ui.interaction.click,ui.interaction.hover,ui.interaction.drag,ui.interaction.press,ui.webvital.cls,ui.webvital.lcp,pageload,\"\"]", "fields": ["transaction", "count()", "performance_score(measurements.score.total)", "p75(browser.web_vital.lcp.value)", "p75(browser.web_vital.fcp.value)", "p75(browser.web_vital.inp.value)", "p75(browser.web_vital.cls.value)", "p75(browser.web_vital.ttfb.value)"], "aggregates": ["count()", "performance_score(measurements.score.total)", "p75(browser.web_vital.lcp.value)", "p75(browser.web_vital.fcp.value)", "p75(browser.web_vital.inp.value)", "p75(browser.web_vital.cls.value)", "p75(browser.web_vital.ttfb.value)"], "columns": ["transaction"], "fieldAliases": ["Page", "Loads", "Score", "LCP", "FCP", "INP", "CLS", "TTFB"], "orderby": "-count()"}],
+        "layout": {"x": 0, "y": 6, "w": 6, "h": 4, "minH": 2}
       }
     ]
   },

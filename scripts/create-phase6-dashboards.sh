@@ -55,7 +55,13 @@ while IFS= read -r dashboard; do
   } | jq -r --arg title "${title}" '.[] | select(.title == $title) | .id' | head -n 1)"
 
   if [[ -n "${existing_id}" ]]; then
-    echo "  이미 존재: ${title} (id=${existing_id})"
+    curl --fail-with-body --silent --show-error \
+      --request PUT \
+      --header "${AUTH_HEADER}" \
+      --header "Content-Type: application/json" \
+      --data "${dashboard}" \
+      "${API_BASE}/dashboards/${existing_id}/" \
+      | jq -r '"  업데이트 완료: \(.title) (id=\(.id), widgets=\(.widgets | length))"'
     continue
   fi
 

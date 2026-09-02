@@ -24,3 +24,14 @@ test("각 기간 대시보드는 오류·사용자·추이·순위를 모두 제
     assert.ok(dashboard.widgets.some(({ title }) => title.startsWith("Top Errors")));
   }
 });
+
+test("성능 대시보드는 전체 및 페이지별 Performance Score와 Web Vitals를 함께 제공한다", () => {
+  const dashboard = dashboards.find(({ title }) => title === "PoC - API and Frontend Performance");
+  const scoreFormula = "performance_score(measurements.score.total)";
+  assert.ok(dashboard.widgets.some(({ title }) => title === "Overall Performance Score"));
+
+  const pageWidget = dashboard.widgets.find(({ title }) => title === "Web Vitals by Page");
+  assert.ok(pageWidget.queries[0].fields.includes(scoreFormula));
+  assert.ok(pageWidget.queries[0].fields.includes("p75(browser.web_vital.fcp.value)"));
+  assert.ok(pageWidget.queries[0].fields.includes("p75(browser.web_vital.lcp.value)"));
+});
