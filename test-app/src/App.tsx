@@ -3,6 +3,7 @@ import "./App.css";
 import { ExecutionLog } from "./components/ExecutionLog";
 import { TestActionCard } from "./components/TestActionCard";
 import { CustomDataTestSection } from "./custom-data/CustomDataTestSection";
+import { SecurityTestSection } from "./security/SecurityTestSection";
 import { testActions } from "./sentry/actions";
 import { sentryRuntime } from "./sentry/client";
 import type { ExecutionEntry, TestActionDefinition, TestActionId } from "./types";
@@ -116,6 +117,11 @@ export default function App() {
       <CustomDataTestSection
         environment={sentryRuntime.environment}
         release={sentryRuntime.release}
+        isSentryEnabled={sentryRuntime.enabled}
+      />
+
+      <SecurityTestSection
+        environment={sentryRuntime.environment}
         isSentryEnabled={sentryRuntime.enabled}
       />
 

@@ -123,8 +123,100 @@ main {
 
 .test-section,
 .custom-data-section,
+.security-section,
 .execution-log {
   margin-top: 48px;
+}
+
+.security-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.security-test-card,
+.security-protected-card {
+  padding: 26px;
+  border: 1px solid #d7ddd8;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgb(32 54 46 / 6%);
+}
+
+.security-test-card { background: #fdfdf9; }
+
+.security-policy-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.security-policy-summary span {
+  padding: 8px 10px;
+  color: #52615a;
+  font-size: 0.78rem;
+  background: #edf3ee;
+  border-radius: 9px;
+}
+
+.security-policy-summary strong {
+  margin-left: 4px;
+  color: #214d3d;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.security-synthetic-notice {
+  margin-top: 20px;
+  padding: 16px;
+  color: #714917;
+  background: #fff2d8;
+  border: 1px solid #eed29a;
+  border-radius: 12px;
+}
+
+.security-synthetic-notice p {
+  margin: 6px 0 0;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.security-protected-card {
+  color: #e5eee9;
+  background: #25312d;
+  border-color: #17211d;
+}
+
+.security-protected-card h3 {
+  margin: 0 0 16px;
+  color: #fff;
+  font-size: 1.08rem;
+}
+
+.security-protected-card ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.security-protected-card li {
+  padding: 10px;
+  color: #cfe3d8;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  background: rgb(255 255 255 / 6%);
+  border-radius: 9px;
+}
+
+.security-protected-card p {
+  margin: 18px 0 0;
+  padding-top: 16px;
+  color: #9fc4b2;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  border-top: 1px solid rgb(255 255 255 / 12%);
 }
 
 .section-heading {
@@ -509,9 +601,12 @@ main {
   }
 
   .custom-data-layout,
-  .custom-data-fields {
+  .custom-data-fields,
+  .security-layout {
     grid-template-columns: 1fr;
   }
+
+  .security-protected-card ul { grid-template-columns: 1fr; }
 
   .custom-data-guide {
     position: static;
