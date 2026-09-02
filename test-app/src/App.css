@@ -128,10 +128,24 @@ main {
 .service-explorer,
 .identity-section,
 .privacy-section,
+.normalized-section,
 .security-section,
 .execution-log {
   margin-top: 48px;
 }
+
+.normalized-actions { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
+.normalized-actions button { padding: 11px 14px; color: #fff; font: inherit; font-weight: 750; background: #1e5b46; border: 0; border-radius: 10px; cursor: pointer; }
+.normalized-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+.normalized-actions span { color: #7a5d30; font-size: 0.82rem; }
+.normalized-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.normalized-grid article { padding: 24px; color: #e5eee9; background: #25312d; border-radius: 18px; }
+.normalized-grid h3 { margin: 0 0 16px; color: #fff; }
+.normalized-grid ol { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.normalized-grid li { padding: 12px; background: rgb(255 255 255 / 6%); border-radius: 10px; }
+.normalized-grid li div { display: flex; justify-content: space-between; gap: 12px; }
+.normalized-grid li div + div { margin-top: 6px; color: #f0b9a9; font-size: 0.78rem; }
+.normalized-grid li span { color: #b8cec3; font-size: 0.78rem; }
 
 .privacy-gate { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr); gap: 16px; }
 .privacy-gate__form,
@@ -782,6 +796,7 @@ main {
   .live-log-grid,
   .service-projects,
   .privacy-gate,
+  .normalized-grid,
   .security-layout {
     grid-template-columns: 1fr;
   }

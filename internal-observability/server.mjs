@@ -5,19 +5,21 @@ import { fileURLToPath } from "node:url";
 import { calculateFunnel, normalizeAnalyticsEvent } from "./analytics-core.mjs";
 import { pseudonymizeUserId } from "./identity-core.mjs";
 import { PrivacyGate, buildSyntheticProfile } from "./privacy-gate.mjs";
+import { calculateNormalizedErrorRanking, normalizeUsageEvent } from "./usage-core.mjs";
 
 const port = Number(process.env.INTERNAL_OBSERVABILITY_PORT || 4318);
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dataDirectory = resolve(repositoryRoot, ".runtime", "internal-observability");
 const eventFile = resolve(dataDirectory, "analytics-events.ndjson");
 const privacyAuditFile = resolve(dataDirectory, "privacy-audit.ndjson");
+const usageEventFile = resolve(dataDirectory, "usage-events.ndjson");
 const identityHmacSecret = process.env.IDENTITY_HMAC_SECRET || "local-poc-identity-secret-v1";
 
 await mkdir(dataDirectory, { recursive: true });
 
-async function loadEvents() {
+async function loadEventsFrom(file) {
   try {
-    const content = await readFile(eventFile, "utf8");
+    const content = await readFile(file, "utf8");
     return content.split("\n").filter(Boolean).flatMap((line) => {
       try {
         return [JSON.parse(line)];
@@ -31,7 +33,8 @@ async function loadEvents() {
   }
 }
 
-const events = await loadEvents();
+const events = await loadEventsFrom(eventFile);
+const usageEvents = await loadEventsFrom(usageEventFile);
 const privacyAuditEvents = [];
 const privacyGate = new PrivacyGate({
   audit: (event) => {
@@ -79,6 +82,23 @@ const server = createServer(async (request, response) => {
       events.push(event);
       await appendFile(eventFile, `${JSON.stringify(event)}\n`, { mode: 0o600 });
       sendJson(response, 202, { accepted: true });
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/analytics/usage") {
+      const usageEvent = normalizeUsageEvent(await readJson(request));
+      usageEvents.push(usageEvent);
+      await appendFile(usageEventFile, `${JSON.stringify(usageEvent)}\n`, { mode: 0o600 });
+      sendJson(response, 202, { accepted: true });
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/analytics/normalized") {
+      sendJson(response, 200, {
+        generatedAt: new Date().toISOString(),
+        errorRanking: calculateNormalizedErrorRanking(usageEvents),
+        funnel: calculateFunnel(events),
+      });
       return;
     }
 

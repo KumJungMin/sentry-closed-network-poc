@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./App.css";
 import { ExecutionLog } from "./components/ExecutionLog";
 import { LiveLogsSection } from "./components/LiveLogsSection";
+import { NormalizedMetricsSection } from "./analytics/NormalizedMetricsSection";
 import { IdentityTrackingSection } from "./identity/IdentityTrackingSection";
 import { PrivacyAccessSection } from "./privacy/PrivacyAccessSection";
 import { TestActionCard } from "./components/TestActionCard";
@@ -138,6 +139,8 @@ export default function App() {
       <IdentityTrackingSection onIdentityChange={setPseudonymousId} />
 
       <PrivacyAccessSection pseudonymousId={pseudonymousId} />
+
+      <NormalizedMetricsSection pseudonymousId={pseudonymousId} />
 
       <SecurityTestSection
         environment={sentryRuntime.environment}
