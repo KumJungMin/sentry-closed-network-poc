@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Sentry 폐쇄망 한국어 도우미",
+  "version": "1.0.0",
+  "description": "로컬 Self-hosted Sentry의 운영 UI를 오프라인 한국어로 표시합니다.",
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost:9000/*",
+        "http://127.0.0.1:9000/*"
+      ],
+      "js": [
+        "dictionary.js",
+        "translator-core.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
