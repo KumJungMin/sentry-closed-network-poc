@@ -15,7 +15,7 @@
 | 6 | 대시보드 구성 및 한계 검증 | 완료 |
 | 7 | 개인정보 및 금융정보 보호 | 완료 |
 | 8 | 폐쇄망 축소 테스트 | 완료 |
-| 9 | 회사 적용 문서 | 대기 |
+| 9 | 회사 적용 문서 | 완료 |
 
 ## 문서
 
@@ -29,11 +29,28 @@
 - [대시보드 구성과 지원 범위 검증](docs/06-dashboards.md)
 - [개인정보·금융정보 보호와 실제 저장 검증](docs/07-security.md)
 - [폐쇄망 축소 테스트와 외부 의존성](docs/08-closed-network.md)
+- [회사 폐쇄망 도입·운영 가이드](docs/09-company-adoption.md)
 
-## 다음 실행 순서
+## 최종 결론
 
-1. [Phase 8 검증 결과](docs/08-closed-network.md)를 검토합니다.
-2. 필요하면 `./scripts/phase8-network.sh isolate`와 `./scripts/verify-phase8-closed-network.sh`로 격리 검증을 재현합니다.
-3. 반드시 `./scripts/phase8-network.sh restore`로 일반 네트워크를 복구한 뒤 Phase 9 회사 적용 문서를 작성합니다.
+Phase 0~9가 모두 완료됐습니다. 외부 통신이 차단된 Sentry 서버에서 핵심 오류 수집·조회, Source map 업로드, 재시작과 데이터 재조회가 동작했습니다. 회사 도입 시 필요한 사양, 반입물, DNS/HTTPS, 백업·복구, 업데이트, 취약점 대응, 권한과 담당 업무는 [Phase 9 회사 적용 가이드](docs/09-company-adoption.md)에 정리했습니다.
+
+다만 [Phase 7](docs/07-security.md)의 Relay 서버 단독 개인정보 제거 probe는 아직 실패합니다. 이 문제를 해결해 합성 민감 원문 저장이 0건임을 증명하기 전까지는 실제 개인정보·금융정보를 보내지 않고 합성 데이터 파일럿으로만 사용해야 합니다.
+
+## 재현 명령
+
+```bash
+# Sentry와 테스트 앱 상태
+./scripts/sentry.sh status
+curl -fsS http://127.0.0.1:9000/_health/
+
+# 폐쇄망 격리와 전체 검증
+./scripts/phase8-network.sh isolate
+./scripts/verify-phase8-closed-network.sh
+
+# 검증 후 반드시 일반 네트워크 복구
+./scripts/phase8-network.sh restore
+./scripts/verify-phase8-closed-network.sh --recheck
+```
 
 > Sentry 서버는 `http://127.0.0.1:9000/`, React 테스트 앱은 `http://127.0.0.1:5173/`에서 실행 중입니다. 계정 비밀번호와 프로젝트 DSN은 Git에 기록하지 않습니다.
