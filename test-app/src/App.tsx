@@ -123,6 +123,7 @@ export default function App() {
       <SecurityTestSection
         environment={sentryRuntime.environment}
         isSentryEnabled={sentryRuntime.enabled}
+        isReplayEnabled={sentryRuntime.replayEnabled}
       />
 
       <ExecutionLog entries={entries} />

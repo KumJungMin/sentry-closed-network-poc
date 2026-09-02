@@ -10,6 +10,8 @@ cp .env.example .env.local
 
 `.env.local`의 `VITE_SENTRY_DSN`을 Sentry `frontend-poc` 프로젝트 DSN으로 바꿉니다. 실제 DSN은 Git에 커밋하지 않습니다.
 
+로컬 PoC에서는 Replay가 활성화되며 모든 텍스트·입력·미디어가 마스킹됩니다. `data-sentry-block` 또는 `data-private` 속성이 붙은 영역은 통째로 녹화에서 제외됩니다. 운영 환경은 `VITE_SENTRY_REPLAY_ENABLED=true`를 명시하기 전까지 Replay가 꺼집니다.
+
 ## 실행
 
 ```bash

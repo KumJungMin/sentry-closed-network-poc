@@ -2,8 +2,9 @@ import type { Breadcrumb, ErrorEvent } from "@sentry/react";
 
 export interface CollectionPolicy {
   tracesSampleRate: number;
-  replaySessionSampleRate: 0;
-  replayOnErrorSampleRate: 0;
+  replayEnabled: boolean;
+  replaySessionSampleRate: number;
+  replayOnErrorSampleRate: number;
 }
 
 const filteredValue = "[Filtered]";
@@ -88,19 +89,45 @@ function sanitizeRequest(request: ErrorEvent["request"]): ErrorEvent["request"] 
   };
 }
 
-export function buildCollectionPolicy(environment: string, configuredRate?: string): CollectionPolicy {
-  const environmentName = environment.trim().toLowerCase();
+function parseSampleRate(configuredRate: string | undefined, fallback: number): number {
   const parsedRate = configuredRate?.trim() ? Number(configuredRate) : Number.NaN;
-  const defaultRate = environmentName === "production"
+  return Number.isFinite(parsedRate) && parsedRate >= 0 && parsedRate <= 1
+    ? parsedRate
+    : fallback;
+}
+
+function parseBoolean(value: string | undefined): boolean | undefined {
+  const normalized = value?.trim().toLowerCase();
+  if (normalized === "true") return true;
+  if (normalized === "false") return false;
+  return undefined;
+}
+
+export function buildCollectionPolicy(
+  environment: string,
+  configuredTraceRate?: string,
+  configuredReplayEnabled?: string,
+  configuredReplaySessionRate?: string,
+  configuredReplayErrorRate?: string,
+): CollectionPolicy {
+  const environmentName = environment.trim().toLowerCase();
+  const isLocal = ["local", "development", "dev"].includes(environmentName);
+  const defaultTraceRate = environmentName === "production"
     ? 0.1
     : ["staging", "stage", "sit", "uat"].includes(environmentName) ? 0.5 : 1;
+  const replayEnabled = parseBoolean(configuredReplayEnabled) ?? isLocal;
+  const defaultReplaySessionRate = isLocal ? 1 : 0;
+  const defaultReplayErrorRate = isLocal ? 1 : 0.1;
 
   return {
-    tracesSampleRate: Number.isFinite(parsedRate) && parsedRate >= 0 && parsedRate <= 1
-      ? parsedRate
-      : defaultRate,
-    replaySessionSampleRate: 0,
-    replayOnErrorSampleRate: 0,
+    tracesSampleRate: parseSampleRate(configuredTraceRate, defaultTraceRate),
+    replayEnabled,
+    replaySessionSampleRate: replayEnabled
+      ? parseSampleRate(configuredReplaySessionRate, defaultReplaySessionRate)
+      : 0,
+    replayOnErrorSampleRate: replayEnabled
+      ? parseSampleRate(configuredReplayErrorRate, defaultReplayErrorRate)
+      : 0,
   };
 }
 

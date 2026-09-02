@@ -89,16 +89,28 @@ describe("securityPolicy", () => {
     });
   });
 
-  it("환경별 trace 표본율과 명시적 override를 적용하고 Replay는 끈다", () => {
+  it("로컬에서는 보호된 Replay를 켜고 운영에서는 명시적으로 승인해야 켠다", () => {
     expect(buildCollectionPolicy("local")).toEqual({
       tracesSampleRate: 1,
-      replaySessionSampleRate: 0,
-      replayOnErrorSampleRate: 0,
+      replayEnabled: true,
+      replaySessionSampleRate: 1,
+      replayOnErrorSampleRate: 1,
     });
     expect(buildCollectionPolicy("production").tracesSampleRate).toBe(0.1);
+    expect(buildCollectionPolicy("production").replayEnabled).toBe(false);
     expect(buildCollectionPolicy("uat").tracesSampleRate).toBe(0.5);
     expect(buildCollectionPolicy("production", "0.25").tracesSampleRate).toBe(0.25);
     expect(buildCollectionPolicy("production", "2").tracesSampleRate).toBe(0.1);
+    expect(buildCollectionPolicy("local", undefined, "false")).toMatchObject({
+      replayEnabled: false,
+      replaySessionSampleRate: 0,
+      replayOnErrorSampleRate: 0,
+    });
+    expect(buildCollectionPolicy("production", undefined, "true", "0.02", "0.5")).toMatchObject({
+      replayEnabled: true,
+      replaySessionSampleRate: 0.02,
+      replayOnErrorSampleRate: 0.5,
+    });
     expect(sanitizeUrl("/confirm?otp=000000#done")).toBe("/confirm");
   });
 });

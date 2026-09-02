@@ -28,17 +28,17 @@ describe("SecurityTestSection", () => {
   });
 
   it("보호 정책과 실제 데이터 입력 금지 안내를 표시한다", () => {
-    render(<SecurityTestSection environment="local" isSentryEnabled />);
+    render(<SecurityTestSection environment="local" isSentryEnabled isReplayEnabled />);
 
     expect(screen.getByRole("heading", { name: "민감정보 비수집 검증" })).toBeTruthy();
-    expect(screen.getByText("Session Replay").textContent).toContain("OFF");
+    expect(screen.getByText("Session Replay").textContent).toContain("ON · 전체 마스킹");
     expect(screen.getByText("실제 개인정보를 입력하지 마세요.")).toBeTruthy();
     expect(screen.getByText("Authorization · Cookie")).toBeTruthy();
   });
 
   it("고정 합성값을 격리된 scope에 담아 보안 검증 이벤트를 전송한다", async () => {
     const user = userEvent.setup();
-    render(<SecurityTestSection environment="local" isSentryEnabled />);
+    render(<SecurityTestSection environment="local" isSentryEnabled isReplayEnabled />);
 
     await user.click(screen.getByRole("button", { name: "합성 민감정보 이벤트 전송" }));
 
@@ -58,14 +58,14 @@ describe("SecurityTestSection", () => {
   });
 
   it("SDK 미연결 시 전송 버튼을 비활성화한다", () => {
-    render(<SecurityTestSection environment="local" isSentryEnabled={false} />);
+    render(<SecurityTestSection environment="local" isSentryEnabled={false} isReplayEnabled />);
     expect(screen.getByRole("button", { name: "SDK 연결 필요" }).hasAttribute("disabled")).toBe(true);
   });
 
   it("flush가 완료되지 않으면 성공으로 표시하지 않는다", async () => {
     sentryMocks.flush.mockResolvedValueOnce(false);
     const user = userEvent.setup();
-    render(<SecurityTestSection environment="local" isSentryEnabled />);
+    render(<SecurityTestSection environment="local" isSentryEnabled isReplayEnabled />);
 
     await user.click(screen.getByRole("button", { name: "합성 민감정보 이벤트 전송" }));
 

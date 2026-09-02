@@ -3,6 +3,7 @@ import { useSecurityTest } from "./useSecurityTest";
 interface SecurityTestSectionProps {
   environment: string;
   isSentryEnabled: boolean;
+  isReplayEnabled: boolean;
 }
 
 const protectedDataGroups = [
@@ -16,7 +17,11 @@ const protectedDataGroups = [
   "전체 입력 폼 · 거래 식별자",
 ] as const;
 
-export function SecurityTestSection({ environment, isSentryEnabled }: SecurityTestSectionProps) {
+export function SecurityTestSection({
+  environment,
+  isSentryEnabled,
+  isReplayEnabled,
+}: SecurityTestSectionProps) {
   const { isSubmitting, result, submit } = useSecurityTest(isSentryEnabled);
 
   return (
@@ -30,11 +35,11 @@ export function SecurityTestSection({ environment, isSentryEnabled }: SecurityTe
       </div>
 
       <div className="security-layout">
-        <div className="security-test-card">
+        <div className="security-test-card" data-sentry-block>
           <div className="security-policy-summary" aria-label="현재 보안 정책">
             <span>Environment <strong>{environment}</strong></span>
             <span>Default PII <strong>OFF</strong></span>
-            <span>Session Replay <strong>OFF</strong></span>
+            <span>Session Replay <strong>{isReplayEnabled ? "ON · 전체 마스킹" : "OFF"}</strong></span>
             <span>Query string <strong>제거</strong></span>
           </div>
 
@@ -65,7 +70,7 @@ export function SecurityTestSection({ environment, isSentryEnabled }: SecurityTe
         <aside className="security-protected-card" aria-label="비수집 대상">
           <h3>저장하면 안 되는 데이터</h3>
           <ul>{protectedDataGroups.map((group) => <li key={group}>{group}</li>)}</ul>
-          <p>익명화된 `anon-*` 사용자 ID만 허용하고 나머지 사용자 식별자는 제거합니다.</p>
+          <p>이 영역은 Replay에서 통째로 차단하며, 입력·텍스트·미디어는 전역 마스킹합니다.</p>
         </aside>
       </div>
     </section>
