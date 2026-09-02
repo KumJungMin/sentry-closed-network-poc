@@ -6,7 +6,11 @@ const sentryBaseUrl = import.meta.env.VITE_SENTRY_BASE_URL?.trim() || "http://12
 const sentryOrganization = import.meta.env.VITE_SENTRY_ORG?.trim() || "sentry";
 const sentryProjectId = import.meta.env.VITE_SENTRY_PROJECT_ID?.trim() || "2";
 
-export function IdentityTrackingSection() {
+interface IdentityTrackingSectionProps {
+  onIdentityChange?: (pseudonymousId: string) => void;
+}
+
+export function IdentityTrackingSection({ onIdentityChange }: IdentityTrackingSectionProps) {
   const [userId, setUserId] = useState(sampleUuid);
   const [pseudonymousId, setPseudonymousId] = useState("");
   const [status, setStatus] = useState("합성 UUID만 사용하세요.");
@@ -29,6 +33,7 @@ export function IdentityTrackingSection() {
     try {
       const id = await activatePseudonymousIdentity(userId.trim());
       setPseudonymousId(id);
+      onIdentityChange?.(id);
       setStatus("가명 ID가 현재 Sentry scope에 연결되었습니다.");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "가명 ID 연결 실패");
@@ -40,6 +45,7 @@ export function IdentityTrackingSection() {
   const clear = () => {
     clearPseudonymousIdentity();
     setPseudonymousId("");
+    onIdentityChange?.("");
     setStatus("사용자 scope를 익명 상태로 되돌렸습니다.");
   };
 

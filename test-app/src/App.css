@@ -127,10 +127,31 @@ main {
 .live-logs-section,
 .service-explorer,
 .identity-section,
+.privacy-section,
 .security-section,
 .execution-log {
   margin-top: 48px;
 }
+
+.privacy-gate { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr); gap: 16px; }
+.privacy-gate__form,
+.privacy-profile { padding: 24px; background: #fdfdf9; border: 1px solid #d7ddd8; border-radius: 18px; }
+.privacy-gate__form { display: grid; gap: 12px; }
+.privacy-gate__form label { display: grid; gap: 6px; }
+.privacy-gate__form label span { color: #53615a; font-size: 0.78rem; font-weight: 750; }
+.privacy-gate__form input { padding: 10px 12px; font: inherit; border: 1px solid #c8d2cb; border-radius: 9px; }
+.privacy-gate__form input[readonly] { background: #edf1ed; }
+.privacy-gate__form button { padding: 12px 15px; color: #fff; font: inherit; font-weight: 750; background: #1e5b46; border: 0; border-radius: 10px; cursor: pointer; }
+.privacy-gate__form button:disabled { opacity: 0.5; cursor: not-allowed; }
+.privacy-gate__form p { margin: 0; color: #65716c; font-size: 0.82rem; line-height: 1.5; }
+.privacy-profile { color: #d4dfd9; background: #343b38; border-color: #232825; }
+.privacy-profile.is-open { color: #d9eee3; background: #193a2f; }
+.privacy-profile > span { font-weight: 850; }
+.privacy-profile dl { display: grid; gap: 12px; margin: 20px 0 0; }
+.privacy-profile dl div { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 10px; border-bottom: 1px solid rgb(255 255 255 / 10%); }
+.privacy-profile dt { color: #9fc4b2; }
+.privacy-profile dd { margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.privacy-profile p { color: #aeb9b3; line-height: 1.6; }
 
 .identity-panel { padding: 24px; background: #fdfdf9; border: 1px solid #d7ddd8; border-radius: 18px; }
 .identity-panel > label { display: grid; gap: 7px; }
@@ -760,6 +781,7 @@ main {
   .funnel-layout,
   .live-log-grid,
   .service-projects,
+  .privacy-gate,
   .security-layout {
     grid-template-columns: 1fr;
   }

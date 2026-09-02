@@ -3,6 +3,7 @@ import "./App.css";
 import { ExecutionLog } from "./components/ExecutionLog";
 import { LiveLogsSection } from "./components/LiveLogsSection";
 import { IdentityTrackingSection } from "./identity/IdentityTrackingSection";
+import { PrivacyAccessSection } from "./privacy/PrivacyAccessSection";
 import { TestActionCard } from "./components/TestActionCard";
 import { CustomDataTestSection } from "./custom-data/CustomDataTestSection";
 import { SecurityTestSection } from "./security/SecurityTestSection";
@@ -33,6 +34,7 @@ function createEntry(
 export default function App() {
   const [runningActionId, setRunningActionId] = useState<TestActionId | null>(null);
   const [entries, setEntries] = useState<ExecutionEntry[]>([]);
+  const [pseudonymousId, setPseudonymousId] = useState("");
 
   const handleRun = async (action: TestActionDefinition) => {
     setRunningActionId(action.id);
@@ -133,7 +135,9 @@ export default function App() {
 
       <ServiceErrorExplorer />
 
-      <IdentityTrackingSection />
+      <IdentityTrackingSection onIdentityChange={setPseudonymousId} />
+
+      <PrivacyAccessSection pseudonymousId={pseudonymousId} />
 
       <SecurityTestSection
         environment={sentryRuntime.environment}

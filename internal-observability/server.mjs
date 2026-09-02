@@ -4,11 +4,13 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { calculateFunnel, normalizeAnalyticsEvent } from "./analytics-core.mjs";
 import { pseudonymizeUserId } from "./identity-core.mjs";
+import { PrivacyGate, buildSyntheticProfile } from "./privacy-gate.mjs";
 
 const port = Number(process.env.INTERNAL_OBSERVABILITY_PORT || 4318);
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dataDirectory = resolve(repositoryRoot, ".runtime", "internal-observability");
 const eventFile = resolve(dataDirectory, "analytics-events.ndjson");
+const privacyAuditFile = resolve(dataDirectory, "privacy-audit.ndjson");
 const identityHmacSecret = process.env.IDENTITY_HMAC_SECRET || "local-poc-identity-secret-v1";
 
 await mkdir(dataDirectory, { recursive: true });
@@ -30,6 +32,14 @@ async function loadEvents() {
 }
 
 const events = await loadEvents();
+const privacyAuditEvents = [];
+const privacyGate = new PrivacyGate({
+  audit: (event) => {
+    const auditEvent = { ...event, occurredAt: new Date().toISOString() };
+    privacyAuditEvents.push(auditEvent);
+    void appendFile(privacyAuditFile, `${JSON.stringify(auditEvent)}\n`, { mode: 0o600 });
+  },
+});
 
 function sendJson(response, statusCode, payload) {
   response.writeHead(statusCode, {
@@ -76,6 +86,38 @@ const server = createServer(async (request, response) => {
       const input = await readJson(request);
       const pseudonymousId = pseudonymizeUserId(input.userId, identityHmacSecret);
       sendJson(response, 200, { pseudonymousId });
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/privacy/challenges") {
+      const challenge = privacyGate.requestAccess(await readJson(request));
+      sendJson(response, 201, { ...challenge, pocSyntheticDataOnly: true });
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/privacy/sessions") {
+      sendJson(response, 201, privacyGate.verifyChallenge(await readJson(request)));
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname.startsWith("/api/privacy/users/")) {
+      const pseudonymousId = decodeURIComponent(url.pathname.slice("/api/privacy/users/".length));
+      const sessionToken = request.headers.authorization?.replace(/^Bearer\s+/i, "") ?? "";
+      privacyGate.authorize(sessionToken, pseudonymousId);
+      sendJson(response, 200, buildSyntheticProfile(pseudonymousId));
+      return;
+    }
+
+    if (request.method === "DELETE" && url.pathname === "/api/privacy/sessions/current") {
+      const sessionToken = request.headers.authorization?.replace(/^Bearer\s+/i, "") ?? "";
+      privacyGate.revoke(sessionToken);
+      response.writeHead(204, { "Cache-Control": "no-store" });
+      response.end();
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/privacy/audit") {
+      sendJson(response, 200, { events: privacyAuditEvents.slice(-20).reverse() });
       return;
     }
 
