@@ -1,0 +1,11 @@
+{
+  "name": "sentry-closed-network-poc",
+  "private": true,
+  "version": "0.2.0",
+  "packageManager": "pnpm@10.14.0",
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck"
+  }
+}
