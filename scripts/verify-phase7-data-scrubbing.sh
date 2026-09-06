@@ -177,7 +177,7 @@ for attempt in {1..20}; do
   sleep 2
 done
 
-echo "3/3 저장본의 원본 민감값 부재 확인"
+echo "3/3 저장본의 user.id 보존 및 나머지 원본 민감값 부재 확인"
 LEAKED_LABELS=()
 while IFS=$'\t' read -r label value; do
   if rg --fixed-strings --quiet -- "${value}" "${STORED_FILE}"; then
@@ -201,7 +201,6 @@ raw_request	FAKE-RAW-REQUEST-PHASE7
 raw_response	FAKE-RAW-RESPONSE-PHASE7
 input_form	FAKE-FULL-FORM-PHASE7
 transaction_id	FAKE-TRANSACTION-ID-PHASE7
-raw_user_id	raw-user-id-phase7
 VALUES
 
 if (( ${#LEAKED_LABELS[@]} > 0 )); then
@@ -214,11 +213,10 @@ if ! jq -e '.. | strings | select(. == "privacy-scrub-test")' "${STORED_FILE}" >
   exit 1
 fi
 
-if [[ "${VERIFY_MODE}" == "--identity-probe" ]] && \
-  ! jq -e --arg approved_user_id "${APPROVED_USER_ID}" '.. | strings | select(. == $approved_user_id)' "${STORED_FILE}" >/dev/null; then
-  echo "허용된 가명 사용자 ID가 서버에서 제거되었습니다." >&2
+if ! jq -e --arg probe_user_id "${PROBE_USER_ID}" '.. | strings | select(. == $probe_user_id)' "${STORED_FILE}" >/dev/null; then
+  echo "user.id 원본이 저장본에서 제거되었습니다: ${PROBE_USER_ID}" >&2
   exit 1
 fi
 
-echo "  통과: 18개 원본 민감값 없음, 안전한 업무 상태 유지"
+echo "  통과: user.id 원본 보존, 나머지 17개 원본 민감값 없음, 안전한 업무 상태 유지"
 echo "  확인 URL: ${SENTRY_URL%/}/organizations/${SENTRY_ORG}/issues/?query=${EVENT_ID}"

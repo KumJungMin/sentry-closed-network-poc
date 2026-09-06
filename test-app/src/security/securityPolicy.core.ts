@@ -8,7 +8,6 @@ export interface CollectionPolicy {
 }
 
 const filteredValue = "[Filtered]";
-const anonymousUserIdPattern = /^dbg_v1_[A-Za-z0-9_-]{20,80}$/;
 
 const sensitiveKeys = new Set([
   "name", "fullname", "firstname", "lastname", "username", "customername",
@@ -77,8 +76,7 @@ function sanitizeUnknown(value: unknown): unknown {
 }
 
 function sanitizeUser(user: ErrorEvent["user"]): ErrorEvent["user"] {
-  const id = typeof user?.id === "string" ? user.id : "";
-  return anonymousUserIdPattern.test(id) ? { id } : undefined;
+  return user?.id === undefined ? undefined : { id: user.id };
 }
 
 function sanitizeRequest(request: ErrorEvent["request"]): ErrorEvent["request"] {
@@ -116,7 +114,7 @@ export function buildCollectionPolicy(
     ? 0.1
     : ["staging", "stage", "sit", "uat"].includes(environmentName) ? 0.5 : 1;
   const replayEnabled = parseBoolean(configuredReplayEnabled) ?? isLocal;
-  const defaultReplaySessionRate = isLocal ? 1 : 0;
+  const defaultReplaySessionRate = 0;
   const defaultReplayErrorRate = isLocal ? 1 : 0.1;
 
   return {

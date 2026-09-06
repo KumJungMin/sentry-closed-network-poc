@@ -1,16 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./App.css";
-import { ExecutionLog } from "./components/ExecutionLog";
-import { LiveLogsSection } from "./components/LiveLogsSection";
-import { NormalizedMetricsSection } from "./analytics/NormalizedMetricsSection";
-import { IdentityTrackingSection } from "./identity/IdentityTrackingSection";
-import { PrivacyAccessSection } from "./privacy/PrivacyAccessSection";
-import { TestActionCard } from "./components/TestActionCard";
-import { CustomDataTestSection } from "./custom-data/CustomDataTestSection";
-import { SecurityTestSection } from "./security/SecurityTestSection";
-import { ServiceErrorExplorer } from "./services/ServiceErrorExplorer";
-import { SignupFunnelSection } from "./signup-funnel/SignupFunnelSection";
-import { testActions } from "./sentry/actions";
+import { AppNavigation } from "./routing/AppNavigation";
+import { AppRouteContent } from "./routing/AppRouteContent";
+import { appRoutePaths } from "./routing/routes.core";
 import { sentryRuntime } from "./sentry/client";
 import type { ExecutionEntry, TestActionDefinition, TestActionId } from "./types";
 
@@ -33,6 +26,7 @@ function createEntry(
 }
 
 export default function App() {
+  const navigate = useNavigate();
   const [runningActionId, setRunningActionId] = useState<TestActionId | null>(null);
   const [entries, setEntries] = useState<ExecutionEntry[]>([]);
   const [pseudonymousId, setPseudonymousId] = useState("");
@@ -55,6 +49,7 @@ export default function App() {
       ].slice(0, maxLogEntries));
     } finally {
       setRunningActionId(null);
+      navigate(appRoutePaths.executionLog);
     }
   };
 
@@ -99,56 +94,14 @@ export default function App() {
         </section>
       )}
 
-      <section className="test-section" aria-labelledby="test-section-title">
-        <div className="section-heading">
-          <div>
-            <p className="eyebrow">Seven focused experiments</p>
-            <h2 id="test-section-title">수집 기능 테스트</h2>
-          </div>
-          <p>한 번에 하나씩 실행한 뒤 Sentry 화면과 비교하세요.</p>
-        </div>
-
-        <div className="test-grid">
-          {testActions.map((action) => (
-            <TestActionCard
-              key={action.id}
-              action={action}
-              isDisabled={runningActionId !== null}
-              isRunning={runningActionId === action.id}
-              onRun={handleRun}
-            />
-          ))}
-        </div>
-      </section>
-
-      <CustomDataTestSection
-        environment={sentryRuntime.environment}
-        release={sentryRuntime.release}
-        isSentryEnabled={sentryRuntime.enabled}
+      <AppNavigation />
+      <AppRouteContent
+        entries={entries}
+        pseudonymousId={pseudonymousId}
+        runningActionId={runningActionId}
+        onIdentityChange={setPseudonymousId}
+        onRun={handleRun}
       />
-
-      <SignupFunnelSection />
-
-      <LiveLogsSection
-        isSentryEnabled={sentryRuntime.enabled}
-        logsEnabled={sentryRuntime.logsEnabled}
-      />
-
-      <ServiceErrorExplorer />
-
-      <IdentityTrackingSection onIdentityChange={setPseudonymousId} />
-
-      <PrivacyAccessSection key={pseudonymousId || "anonymous"} pseudonymousId={pseudonymousId} />
-
-      <NormalizedMetricsSection pseudonymousId={pseudonymousId} />
-
-      <SecurityTestSection
-        environment={sentryRuntime.environment}
-        isSentryEnabled={sentryRuntime.enabled}
-        isReplayEnabled={sentryRuntime.replayEnabled}
-      />
-
-      <ExecutionLog entries={entries} />
     </main>
   );
 }

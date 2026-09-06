@@ -41,13 +41,15 @@ for project_slug in project_slugs:
             **required_applications,
         }.items()
     }
-    # user.id는 허용된 dbg_v1 형식만 보존해야 하므로 과거 remove-anything 규칙을 교체한다.
-    merged_applications["$user.id"] = required_applications["$user.id"]
+    # user.id는 고객 식별자 연결을 위해 원본을 보존한다. 과거 제거 규칙도 함께 해제한다.
+    merged_applications.pop("$user.id", None)
+    merged_rules = {
+        **(existing_pii_config.get("rules") or {}),
+        **required_pii_config["rules"],
+    }
+    merged_rules.pop("phase7-remove-invalid-user-id-v1", None)
     merged_pii_config = {
-        "rules": {
-            **(existing_pii_config.get("rules") or {}),
-            **required_pii_config["rules"],
-        },
+        "rules": merged_rules,
         "applications": merged_applications,
     }
     merged_pii_config_json = json.dumps(merged_pii_config, separators=(",", ":"))

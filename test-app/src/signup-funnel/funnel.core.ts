@@ -6,22 +6,49 @@ export const signupSteps = [
 ] as const;
 
 export type SignupStepId = (typeof signupSteps)[number]["id"];
-export type FunnelEventName = "entered" | "advanced" | "abandoned" | "completed";
+export type FunnelEventName =
+  | "page_view"
+  | "entered"
+  | "advanced"
+  | "abandoned"
+  | "completed";
 
 export interface FunnelSummaryStep {
   id: SignupStepId;
   label: string;
   reached: number;
   dropOff: number;
+  pendingDropOff: number;
   dropOffRate: number;
   conversionRate: number;
 }
 
 export interface FunnelSummary {
   generatedAt: string;
+  dropOffGracePeriodMs: number;
   totalAttempts: number;
   completedAttempts: number;
   steps: FunnelSummaryStep[];
+}
+
+const signupStepIds = new Set<string>(signupSteps.map(({ id }) => id));
+
+export function isSignupStepId(value: unknown): value is SignupStepId {
+  return typeof value === "string" && signupStepIds.has(value);
+}
+
+export function getNextSignupStep(stepId: SignupStepId) {
+  const currentIndex = signupSteps.findIndex(({ id }) => id === stepId);
+  return signupSteps[currentIndex + 1] ?? null;
+}
+
+export function getSignupStepIndex(stepId: SignupStepId): number {
+  return signupSteps.findIndex(({ id }) => id === stepId);
+}
+
+export function formatDropOffGracePeriod(milliseconds: number): string {
+  if (milliseconds <= 0) return "즉시";
+  return `${Math.ceil(milliseconds / 60_000)}분 후`;
 }
 
 export function createAttemptId(randomUuid = crypto.randomUUID()): string {

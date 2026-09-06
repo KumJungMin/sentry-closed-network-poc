@@ -2,7 +2,11 @@ import { createServer } from "node:http";
 import { appendFile, mkdir, readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { calculateFunnel, normalizeAnalyticsEvent } from "./analytics-core.mjs";
+import {
+  calculateFunnel,
+  DEFAULT_FUNNEL_DROPOFF_GRACE_PERIOD_MS,
+  normalizeAnalyticsEvent,
+} from "./analytics-core.mjs";
 import { pseudonymizeUserId } from "./identity-core.mjs";
 import { PrivacyGate, buildSyntheticProfile } from "./privacy-gate.mjs";
 import { calculateNormalizedErrorRanking, normalizeUsageEvent } from "./usage-core.mjs";
@@ -14,6 +18,11 @@ const eventFile = resolve(dataDirectory, "analytics-events.ndjson");
 const privacyAuditFile = resolve(dataDirectory, "privacy-audit.ndjson");
 const usageEventFile = resolve(dataDirectory, "usage-events.ndjson");
 const identityHmacSecret = process.env.IDENTITY_HMAC_SECRET || "local-poc-identity-secret-v1";
+const configuredDropOffGracePeriodMs = Number(process.env.FUNNEL_DROPOFF_GRACE_PERIOD_MS);
+const funnelDropOffGracePeriodMs = Number.isFinite(configuredDropOffGracePeriodMs)
+  && configuredDropOffGracePeriodMs >= 0
+  ? configuredDropOffGracePeriodMs
+  : DEFAULT_FUNNEL_DROPOFF_GRACE_PERIOD_MS;
 
 await mkdir(dataDirectory, { recursive: true });
 
@@ -73,7 +82,10 @@ const server = createServer(async (request, response) => {
     }
 
     if (request.method === "GET" && url.pathname === "/api/analytics/funnel") {
-      sendJson(response, 200, { generatedAt: new Date().toISOString(), ...calculateFunnel(events) });
+      sendJson(response, 200, {
+        generatedAt: new Date().toISOString(),
+        ...calculateFunnel(events, { dropOffGracePeriodMs: funnelDropOffGracePeriodMs }),
+      });
       return;
     }
 
@@ -97,7 +109,7 @@ const server = createServer(async (request, response) => {
       sendJson(response, 200, {
         generatedAt: new Date().toISOString(),
         errorRanking: calculateNormalizedErrorRanking(usageEvents),
-        funnel: calculateFunnel(events),
+        funnel: calculateFunnel(events, { dropOffGracePeriodMs: funnelDropOffGracePeriodMs }),
       });
       return;
     }

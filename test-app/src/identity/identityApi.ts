@@ -1,7 +1,36 @@
 import * as Sentry from "@sentry/react";
+import { recordIdentifiedUserBehavior } from "../sentry/dashboardTelemetry";
 import { isPseudonymousDebugId } from "./identity.core";
 
-export async function activatePseudonymousIdentity(userId: string): Promise<string> {
+export interface ActivatedCustomerIdentity {
+  customerId: string;
+  pseudonymousId: string;
+}
+
+export async function activateCustomerIdentity(customerId: string): Promise<ActivatedCustomerIdentity> {
+  const normalizedCustomerId = customerId.trim();
+  if (!normalizedCustomerId) throw new Error("고객 ID를 입력하세요.");
+
+  const pseudonymousId = await requestPseudonymousId(normalizedCustomerId);
+  Sentry.setUser({ id: normalizedCustomerId });
+  Sentry.setTag("identity_mode", "raw_customer_id");
+  Sentry.addBreadcrumb({
+    category: "identity",
+    level: "info",
+    message: "customer_identity_activated",
+  });
+  recordIdentifiedUserBehavior("identity_activated", normalizedCustomerId);
+  return { customerId: normalizedCustomerId, pseudonymousId };
+}
+
+export function clearCustomerIdentity(): void {
+  const customerId = Sentry.getCurrentScope().getUser()?.id;
+  if (customerId !== undefined) recordIdentifiedUserBehavior("identity_cleared", String(customerId));
+  Sentry.setUser(null);
+  Sentry.setTag("identity_mode", "anonymous");
+}
+
+async function requestPseudonymousId(userId: string): Promise<string> {
   const response = await fetch("/internal-api/identity/pseudonymize", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -14,17 +43,5 @@ export async function activatePseudonymousIdentity(userId: string): Promise<stri
     throw new Error("허용되지 않은 가명 사용자 ID입니다.");
   }
 
-  Sentry.setUser({ id: payload.pseudonymousId });
-  Sentry.setTag("identity_mode", "pseudonymous");
-  Sentry.addBreadcrumb({
-    category: "identity",
-    level: "info",
-    message: "pseudonymous_debug_identity_activated",
-  });
   return payload.pseudonymousId;
-}
-
-export function clearPseudonymousIdentity(): void {
-  Sentry.setUser(null);
-  Sentry.setTag("identity_mode", "anonymous");
 }

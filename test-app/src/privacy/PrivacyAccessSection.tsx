@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { recordPrivacyDashboardState } from "../sentry/dashboardTelemetry";
 import {
   fetchPrivateProfile,
   requestPrivacyChallenge,
@@ -30,6 +31,7 @@ export function PrivacyAccessSection({ pseudonymousId }: PrivacyAccessSectionPro
       const nextChallenge = await requestPrivacyChallenge(pseudonymousId, reason, ticket);
       setChallenge(nextChallenge);
       setCode(nextChallenge.oneTimeCode);
+      recordPrivacyDashboardState("challenge_requested", false);
       setStatus("PoC 일회용 인증번호가 발급되었습니다. 운영에서는 별도 인증 채널로 전송합니다.");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "조회 승인 요청 실패");
@@ -53,8 +55,10 @@ export function PrivacyAccessSection({ pseudonymousId }: PrivacyAccessSectionPro
       setSession(nextSession);
       sessionTokenRef.current = nextSession.sessionToken;
       setProfile(nextProfile);
+      recordPrivacyDashboardState("access_opened", true);
       setStatus("10분 JIT 조회 세션이 열렸습니다. 조회 행위는 별도 감사 로그에 남습니다.");
     } catch (error) {
+      recordPrivacyDashboardState("access_denied", false);
       setStatus(error instanceof Error ? error.message : "인증번호 확인 실패");
     } finally {
       setIsSubmitting(false);
@@ -68,6 +72,7 @@ export function PrivacyAccessSection({ pseudonymousId }: PrivacyAccessSectionPro
     setProfile(null);
     setChallenge(null);
     setCode("");
+    recordPrivacyDashboardState("access_revoked", false);
     setStatus("개인정보 조회 세션을 종료했습니다.");
   };
 

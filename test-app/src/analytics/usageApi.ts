@@ -13,6 +13,7 @@ export interface NormalizedMetrics {
     affectedUserRate: number | null;
   }>;
   funnel: {
+    dropOffGracePeriodMs: number;
     totalAttempts: number;
     completedAttempts: number;
     steps: Array<{
@@ -20,6 +21,7 @@ export interface NormalizedMetrics {
       label: string;
       reached: number;
       dropOff: number;
+      pendingDropOff: number;
       dropOffRate: number;
       conversionRate: number;
     }>;

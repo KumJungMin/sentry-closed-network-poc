@@ -32,6 +32,18 @@ fi
 API_BASE="${SENTRY_URL%/}/api/0/organizations/${SENTRY_ORG}"
 AUTH_HEADER="Authorization: Bearer ${SENTRY_AUTH_TOKEN}"
 
+legacy_dashboard_title() {
+  case "$1" in
+    "PoC - 프론트엔드 안정성") echo "PoC - Frontend Stability" ;;
+    "PoC - 업무 오류 분석") echo "PoC - Business Error Breakdown" ;;
+    "PoC - API 및 프론트엔드 성능") echo "PoC - API and Frontend Performance" ;;
+    "PoC - 일간 오류 (24시간)") echo "PoC - Errors Daily (24h)" ;;
+    "PoC - 주간 오류 (7일)") echo "PoC - Errors Weekly (7d)" ;;
+    "PoC - 월간 오류 (30일)") echo "PoC - Errors Monthly (30d)" ;;
+    *) echo "" ;;
+  esac
+}
+
 echo "1/2 대시보드 정의 검증"
 while IFS= read -r dashboard; do
   title="$(jq -r '.title' <<<"${dashboard}")"
@@ -48,11 +60,15 @@ done < <(jq -c '.[]' "${DEFINITIONS_FILE}")
 echo "2/2 대시보드 생성"
 while IFS= read -r dashboard; do
   title="$(jq -r '.title' <<<"${dashboard}")"
+  legacy_title="$(legacy_dashboard_title "${title}")"
   existing_id="$({
     curl --fail-with-body --silent --show-error \
       --header "${AUTH_HEADER}" \
       "${API_BASE}/dashboards/"
-  } | jq -r --arg title "${title}" '.[] | select(.title == $title) | .id' | head -n 1)"
+  } | jq -r \
+    --arg title "${title}" \
+    --arg legacy_title "${legacy_title}" \
+    '([.[] | select(.title == $title)] + [.[] | select(.title == $legacy_title)])[0].id // empty')"
 
   if [[ -n "${existing_id}" ]]; then
     curl --fail-with-body --silent --show-error \

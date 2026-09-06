@@ -17,11 +17,13 @@
 | 9 | 사용자 대비 오류·이탈률 | 활성 사용자 모수 기반 순위 구현 | `analytics/`, `usage-core.mjs` |
 | 10 | Web Vitals·Performance Score | Dashboard 3 전체/페이지별 score 구현 | `phase6-dashboards.json` |
 
+테스트 앱은 `react-router-dom`의 `BrowserRouter`로 기능별 URL을 분리한다. `/`와 알 수 없는 경로는 SDK 초기화 전에 `/collection`으로 정규화하고, React Router 전용 Sentry tracing integration이 pageload와 navigation transaction을 실제 route path로 기록한다.
+
 ## 데이터 경계
 
 ```mermaid
 flowchart LR
-    A[React 앱] -->|오류·Log·Span·마스킹 Replay| B[Self-hosted Sentry]
+    A[React 앱] -->|원본 user.id·오류·Log·Span·마스킹 Replay| B[Self-hosted Sentry]
     A -->|가입 단계·가명 활성 사용자 모수| C[망 내부 분석 서버]
     D[원본 UUID] -->|TLS 내부 요청, 저장 안 함| C
     C -->|dbg_v1 HMAC ID| A
@@ -30,14 +32,15 @@ flowchart LR
     F -->|조회 감사 로그| G[별도 감사 저장소]
 ```
 
-Sentry에는 코드 진단에 필요한 최소 신호만 둔다. 가입 전환율의 분모, 활성 사용자 수, 원본 고객 정보는 Sentry의 책임이 아니다. 이 분리를 지켜야 오류 데이터의 검색성과 개인정보 최소수집을 함께 유지할 수 있다.
+Sentry에는 검색용 원본 `user.id`와 코드 진단에 필요한 최소 신호만 둔다. 가입 전환율의 분모, 활성 사용자 수와 나머지 고객 정보는 Sentry의 책임이 아니다.
 
 ## 1. 한국어 UI
 
 Self-hosted Sentry 26.8.0에는 완전한 한국어 locale이 없다. Sentry 소스를 포크하면 업그레이드 비용이 커지므로, 이 PoC는 로컬 Sentry 두 origin에서만 실행되는 Manifest V3 확장을 사용한다.
 
 - 정확히 일치하는 고정 메뉴·버튼 문구만 번역
-- Event title, Tag, 검색식, stack, code, 사용자 입력은 번역하지 않음
+- Event title, 검색식, stack, code, 사용자 입력은 번역하지 않음
+- PoC가 정의한 Tag·Context는 내부 검색 키와 저장값을 유지하고 화면 표시만 번역
 - 네트워크·저장소·클립보드 권한 없음
 - 사전 확장은 `browser-extension/dictionary.js`만 수정
 
@@ -50,22 +53,24 @@ Self-hosted Sentry 26.8.0에는 완전한 한국어 locale이 없다. Sentry 소
 - `blockAllMedia: true`
 - `[data-sentry-block]`, `[data-private]`, `.sentry-block` 영역 전체 차단
 - network detail allowlist 비움, request/response body 수집 금지
-- 로컬 PoC 표본율 1.0, production은 `VITE_SENTRY_REPLAY_ENABLED=true` 명시 전 OFF
+- 로컬 PoC 일반 세션 표본율 0, 오류 세션 표본율 1.0; production은 `VITE_SENTRY_REPLAY_ENABLED=true` 명시 전 OFF
 
 Replay는 오류 이벤트 Relay scrubber와 저장 형식이 다르다. 운영 적용 전에는 실제 운영과 닮은 합성 인증·CDD 화면으로 Replay 저장본을 별도 검사해야 한다. 마스킹 해제 selector는 이 PoC에 제공하지 않는다.
 
 ## 3. 가입 퍼널과 이탈률
 
-업무 순서는 `terms → account → phone → cdd`로 고정했다. 브라우저는 원본 사용자 ID 대신 무작위 `attempt_v1_*` 가입 시도 ID를 보내며, 망 내부 서버가 `entered`, `advanced`, `abandoned`, `completed` 이벤트만 NDJSON으로 저장한다.
+업무 순서는 `terms → account → phone → cdd`로 고정했다. 각 단계는 `/signup-funnel/terms`, `/signup-funnel/account`, `/signup-funnel/phone`, `/signup-funnel/cdd` 고유 URL을 사용한다. 브라우저는 원본 사용자 ID 대신 `sessionStorage`에 보관한 무작위 `attempt_v1_*` 가입 시도 ID를 보내며, 망 내부 서버가 `page_view`, `advanced`, `abandoned`, `completed` 이벤트를 NDJSON으로 저장한다. 기존 `entered` 이벤트는 과거 데이터 호환을 위해 pageView로 계속 읽는다.
 
 단계 `i`의 이탈률은 다음과 같다.
 
 ```text
-(단계 i 도달 가입 시도 수 - 다음 단계 도달 가입 시도 수)
-÷ 단계 i 도달 가입 시도 수 × 100
+유예시간이 지난 뒤에도 다음 단계 pageView 또는 완료가 없는 가입 시도 수
+÷ 단계 i pageView 가입 시도 수 × 100
 ```
 
-각 전환은 동시에 Sentry `ui.funnel` span과 breadcrumb를 만든다. 정확한 수치는 내부 분석 서버에서 보고, 오류 원인은 Sentry의 trace·issue에서 본다.
+기본 유예시간은 30분이며 `FUNNEL_DROPOFF_GRACE_PERIOD_MS`로 조정한다. 유예시간 전에는 `판정 대기`, 이후에는 `확정 이탈`로 표시한다. 새로고침 pageView는 같은 시도·단계에서 중복 집계하지 않고 마지막 관측 시각만 갱신한다. 명시 이탈 버튼은 즉시 확정하는 보조 신호이며, 탭 종료 시점의 불안정한 unload 전송을 공식 기준으로 사용하지 않는다.
+
+각 pageView와 전환은 동시에 Sentry `ui.funnel` span과 breadcrumb를 만들고 `page.path`를 남긴다. 정확한 수치는 내부 분석 서버에서 보고, 오류 원인은 Sentry의 trace·issue에서 본다.
 
 ## 4. 실시간 오류와 Logs
 
@@ -88,9 +93,9 @@ Sentry는 처리 큐를 거치므로 near-real-time이다. `logging.ts`는 자�
 
 ## 6. 특정 사용자 행동 추적
 
-원본 UUID나 단순 hash는 Sentry에 보내지 않는다. 내부 서버가 비밀키 HMAC-SHA256으로 안정적인 `dbg_v1_*` ID를 만들고 원본을 저장하지 않는다. SDK `beforeSend`와 Relay는 이 형식만 허용한다.
+원본 고객 ID는 `Sentry.setUser({id})`로 scope에 직접 연결하며 SDK `beforeSend`와 Relay가 그대로 보존한다. 이메일·username·IP 등 다른 사용자 필드는 계속 제거한다. 같은 원본에서 내부 서버가 만든 `dbg_v1_*` HMAC ID는 내부 분석과 JIT 게이트에만 사용한다.
 
-이 ID로 Issues, Replays, Traces에서 동일 사용자의 흐름을 검색할 수 있다. 키 회전 시 조회 연속성이 끊길 수 있으므로 운영에서는 key version, KMS/HSM, 접근 권한, 회전 정책을 별도 관리한다.
+원본 `user.id`로 Issues, Logs, Replays, Traces에서 동일 사용자의 흐름을 검색할 수 있다. 이 정책은 Sentry 자체가 개인정보 저장소가 된다는 뜻이므로 운영에서는 접근 권한, 보존 기간, 감사와 삭제 요청 절차를 별도로 관리한다.
 
 ## 7. 개인정보 ON/OFF
 
@@ -138,7 +143,7 @@ Dashboard는 운영 요약용이고, 표본·release·browser별 원인 분석�
 | 배포 경계 | project, environment, release |
 | 서비스·화면 | service, page |
 | 업무 오류 | error_code, process_step, channel, partner |
-| 가명 상관관계 | user.id=`dbg_v1_*`, signup.attempt_id=`attempt_v1_*` |
+| 사용자 상관관계 | user.id=`<원본 고객 ID>`, signup.attempt_id=`attempt_v1_*` |
 | 퍼널 | funnel.name, funnel.step, funnel.event |
 
 고객 이름, 전화번호, 이메일, 계좌, CI, 인증번호, token, HTTP body는 taxonomy에 넣지 않는다.
@@ -150,9 +155,9 @@ Dashboard는 운영 요약용이고, 표본·release·browser별 원인 분석�
 - TypeScript, ESLint, production build 통과
 - 서비스 프로젝트 ID 3·4·5 생성, 재실행 중복 없음
 - Dashboard ID 1~6 저장, Dashboard 3 score 수식 API 재조회 성공
-- 네 프론트 프로젝트 Relay applications 58개 적용
-- 서버 단독 probe에서 원본 ID 포함 18개 민감값 제거
-- identity probe에서 승인 `dbg_v1_*` ID 보존
+- 네 프론트 프로젝트에서 `$user.id`를 제외한 Relay 개인정보 selector 적용
+- 서버 단독 probe에서 원본 `user.id` 보존과 나머지 17개 민감값 제거
+- identity probe에서 내부용 `dbg_v1_*` ID도 보존
 
 Node 22.2에서도 빌드는 성공했지만 Vite 8 권장 범위는 Node 20.19+ 또는 22.12+이므로 운영 개발 환경은 해당 버전 이상으로 맞춘다.
 

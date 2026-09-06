@@ -121,6 +121,37 @@ main {
   color: #7a5d30;
 }
 
+.app-navigation {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 10px;
+  overflow-x: auto;
+  background: #e8eee9;
+  border: 1px solid #d2dbd4;
+  border-radius: 16px;
+}
+
+.app-navigation a {
+  flex: 0 0 auto;
+  padding: 10px 13px;
+  color: #52615a;
+  font-size: 0.82rem;
+  font-weight: 750;
+  text-decoration: none;
+  border-radius: 10px;
+}
+
+.app-navigation a:hover {
+  color: #173f31;
+  background: #f5f8f5;
+}
+
+.app-navigation a.is-active {
+  color: #fff;
+  background: #1e5b46;
+}
+
 .test-section,
 .custom-data-section,
 .funnel-section,
@@ -291,6 +322,7 @@ main {
 
 .funnel-screen > span { color: #65716c; font-size: 0.76rem; }
 .funnel-screen > strong { margin-top: 4px; font-size: 1.35rem; }
+.funnel-screen > code { color: #416c5c; }
 .funnel-screen p { color: #59645f; line-height: 1.6; }
 .funnel-screen button {
   padding: 12px 16px;
@@ -312,6 +344,7 @@ main {
 .funnel-summary__total span { color: #afc6ba; }
 .funnel-summary__total strong { color: #fff; font-size: 2rem; }
 .funnel-summary__total small { margin-left: auto; color: #79d0a8; }
+.funnel-summary__policy { color: #afc6ba; font-size: 0.8rem; line-height: 1.5; }
 .funnel-summary ol { display: grid; gap: 9px; margin: 18px 0 0; padding: 0; list-style: none; }
 .funnel-summary li { padding: 12px; background: rgb(255 255 255 / 6%); border-radius: 10px; }
 .funnel-summary li div { display: flex; justify-content: space-between; gap: 12px; }

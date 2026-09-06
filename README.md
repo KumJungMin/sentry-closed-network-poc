@@ -27,6 +27,7 @@
 - [기본 데이터 수집과 Source map 검증](docs/05-basic-collection.md)
 - [금융 WebView 커스텀 데이터 수집](docs/05-custom-data.md)
 - [대시보드 구성과 지원 범위 검증](docs/06-dashboards.md)
+- [업무 오류 막대 상세보기 커스텀 UI](sentry-ui-customization/README.md)
 - [개인정보·금융정보 보호와 실제 저장 검증](docs/07-security.md)
 - [폐쇄망 축소 테스트와 외부 의존성](docs/08-closed-network.md)
 - [회사 폐쇄망 도입·운영 가이드](docs/09-company-adoption.md)
@@ -37,13 +38,13 @@
 - [프론트엔드 디버깅 기능·화면 주소·사용법](docs/11-frontend-debugging-guide.md)
 - [다른 React 프로젝트에 재현하는 파일별 Quick Guide](docs/12-frontend-observability-quick-guide.md)
 
-Sentry는 오류·Logs·Replay·Trace·성능의 진단 허브로 사용한다. 로컬 Replay는 전체 마스킹으로 활성화했고, `dbg_v1_*` HMAC 가명 ID는 SDK·Relay 양쪽 검증 후 보존한다. 정확한 가입 이탈률과 활성 사용자 대비 오류율은 망 내부 분석 서버에서 계산하며, 개인정보 원문은 Sentry가 아닌 별도 JIT 게이트에서만 합성 데이터로 검증한다.
+Sentry는 오류·Logs·Replay·Trace·성능의 진단 허브로 사용한다. 검색용 원본 `user.id`는 SDK·Relay에서 보존하고, 이름·이메일·전화번호·입력값 등 나머지 개인정보는 계속 제거한다. 정확한 가입 이탈률과 활성 사용자 대비 오류율은 망 내부 분석 서버에서 계산한 뒤 안전한 집계 snapshot만 Sentry Dashboard 7에 발행한다.
 
 ## 최종 결론
 
 Phase 0~9가 모두 완료됐습니다. 외부 통신이 차단된 Sentry 서버에서 핵심 오류 수집·조회, Source map 업로드, 재시작과 데이터 재조회가 동작했습니다. 회사 도입 시 필요한 사양, 반입물, DNS/HTTPS, 백업·복구, 업데이트, 취약점 대응, 권한과 담당 업무는 [Phase 9 회사 적용 가이드](docs/09-company-adoption.md)에 정리했습니다.
 
-[Phase 7](docs/07-security.md)의 Relay 서버 단독 개인정보 제거 문제도 해결했습니다. 원본 `$user.id`는 제거하면서 승인된 `dbg_v1_*`만 보존하고, 네 프론트 프로젝트의 project config cache 갱신을 자동화했습니다. server/identity 저장 probe로 합성 민감 원본 18개 부재와 가명 ID 보존을 각각 확인했습니다.
+[Phase 7](docs/07-security.md)은 `$user.id`를 원본 그대로 보존하되 다른 사용자 필드와 민감 원문은 제거합니다. 네 프론트 프로젝트의 project config cache 갱신과 저장본 probe로 ID 보존 및 나머지 17개 합성 민감값 제거를 검증합니다.
 
 ## 재현 명령
 

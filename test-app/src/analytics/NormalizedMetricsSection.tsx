@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { publishNormalizedDashboardSnapshot } from "../sentry/dashboardTelemetry";
 import { emitStructuredLog } from "../sentry/logging";
 import { fetchNormalizedMetrics, recordUsageEvent, type NormalizedMetrics } from "./usageApi";
 
@@ -13,7 +14,9 @@ export function NormalizedMetricsSection({ pseudonymousId }: NormalizedMetricsSe
 
   const refresh = async () => {
     try {
-      setMetrics(await fetchNormalizedMetrics());
+      const nextMetrics = await fetchNormalizedMetrics();
+      setMetrics(nextMetrics);
+      publishNormalizedDashboardSnapshot(nextMetrics);
       setStatus("사용자 기준 지표 최신화 완료");
     } catch {
       setStatus("내부 집계 서버를 실행하세요.");
@@ -75,10 +78,12 @@ export function NormalizedMetricsSection({ pseudonymousId }: NormalizedMetricsSe
         </article>
         <article>
           <h3>가입 화면별 이탈률</h3>
+          <p>다음 pageView가 없는 시도를 유예시간 후 확정 이탈로 계산합니다.</p>
           <ol>{metrics?.funnel.steps.map((step) => (
             <li key={step.id}>
               <div><strong>{step.label}</strong><span>도달 {step.reached}명</span></div>
-              <div><span>이탈 {step.dropOff}명</span><strong>{step.dropOffRate}%</strong></div>
+              <div><span>확정 이탈 {step.dropOff}명</span><strong>{step.dropOffRate}%</strong></div>
+              <div><span>판정 대기</span><strong>{step.pendingDropOff}명</strong></div>
             </li>
           ))}</ol>
         </article>

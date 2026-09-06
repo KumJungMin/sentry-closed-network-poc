@@ -18,12 +18,12 @@ Self-hosted Sentry 26.8.0에서 실제로 저장되고 조회되는 데이터만
 
 | ID | 제목 | 위젯 수 | 주요 데이터셋 |
 | --- | --- | ---: | --- |
-| 1 | PoC - Frontend Stability | 6 | Errors, Issues |
-| 2 | PoC - Business Error Breakdown | 6 | Errors |
-| 3 | PoC - API and Frontend Performance | 9 | Spans |
-| 4 | PoC - Errors Daily (24h) | 4 | Errors |
-| 5 | PoC - Errors Weekly (7d) | 4 | Errors |
-| 6 | PoC - Errors Monthly (30d) | 4 | Errors |
+| 1 | PoC - 프론트엔드 안정성 | 6 | 오류, 이슈 |
+| 2 | PoC - 업무 오류 분석 | 6 | 오류 |
+| 3 | PoC - API 및 프론트엔드 성능 | 9 | Span |
+| 4 | PoC - 일간 오류 (24시간) | 4 | 오류 |
+| 5 | PoC - 주간 오류 (7일) | 4 | 오류 |
+| 6 | PoC - 월간 오류 (30일) | 4 | 오류 |
 
 로컬 URL:
 
@@ -39,6 +39,12 @@ Self-hosted Sentry 26.8.0에서 실제로 저장되고 조회되는 데이터만
 ```bash
 ./scripts/create-phase6-dashboards.sh
 ```
+
+## 업무 오류 막대에서 상세 이벤트 열기
+
+Dashboard 2의 `channel`, `service`, `partner`, `currency`, `process_step`, `error_code` 막대는 선택한 분류값의 개별 오류 이벤트 표로 이동한다. 이동할 때 대시보드의 기간·프로젝트·환경·공통 필터를 유지하고, 선택한 Tag 조건을 추가한다. 상세 표는 이벤트 ID, 발생 시각, 오류 제목, 프로젝트, 사용자 ID, 선택한 업무 Tag를 최신순 최대 100개까지 표시한다. 이벤트 ID 또는 오류 제목을 선택하면 Event Details로 이동해 오류 직전의 Breadcrumbs 행동 기록을 확인할 수 있다.
+
+이 동작은 Self-hosted Sentry 26.8.0 프론트엔드에 적용한 제한적 커스텀 패치다. 오류 위젯에만 적용하므로 Logs와 Spans 차트의 기본 동작은 바뀌지 않는다. 빌드·적용·화면 확인·롤백 방법은 [`sentry-ui-customization/README.md`](../sentry-ui-customization/README.md)에 정리했다. 일반 `./scripts/sentry.sh restart`도 커스텀 Compose 오버레이를 유지한다.
 
 ## 프론트엔드 안정성 실제 결과
 

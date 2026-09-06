@@ -51,19 +51,34 @@ DSN은 브라우저 공개키이지만 저장소별 환경값으로 관리한다
 ## 2. 패키지와 초기화
 
 ```bash
-pnpm add @sentry/react
+pnpm add @sentry/react react-router-dom
 ```
 
 애플리케이션 render보다 먼저 `sentry/client.ts`를 import한다. 필수 옵션은 다음과 같다.
 
 ```ts
+import * as Sentry from "@sentry/react";
+import { useEffect } from "react";
+import {
+  createRoutesFromChildren,
+  matchRoutes,
+  useLocation,
+  useNavigationType,
+} from "react-router-dom";
+
 Sentry.init({
   dsn,
   environment,
   release,
   enableLogs: true,
   integrations: [
-    Sentry.browserTracingIntegration(),
+    Sentry.reactRouterBrowserTracingIntegration({
+      useEffect,
+      useLocation,
+      useNavigationType,
+      createRoutesFromChildren,
+      matchRoutes,
+    }),
     ...(replayEnabled ? [createReplayIntegration()] : []),
   ],
   tracesSampleRate,
@@ -77,6 +92,8 @@ Sentry.init({
 ```
 
 `tracePropagationTargets`에 모든 origin을 넣지 않는다. 인증 header/body는 trace와 별개로 수집하지 않는다.
+
+`Routes`는 `Sentry.wrapReactRouterRouting(Routes)`로 감싸고 앱 root는 `BrowserRouter` 안에서 렌더링한다. `/`를 기본 기능 경로로 바꿔야 한다면 Sentry 초기화 import보다 먼저 `history.replaceState`를 실행해 최초 pageload도 실제 경로로 기록한다. 운영 웹 서버에는 각 직접 URL이 `index.html`로 이어지는 SPA fallback을 설정한다.
 
 ## 3. Replay 개인정보 정책
 
@@ -118,7 +135,9 @@ Sentry.logger.error("frontend_payment_failed", {
 - 새로고침·재시도·뒤로가기 중복 처리
 - 하나의 가입 시도를 식별하는 `attempt_v1_*` 수명
 
-화면 진입마다 내부 분석 API에 `entered`, 전환 시 `advanced`, 명시 이탈 시 `abandoned`, 최종 성공 시 `completed`를 보낸다. 같은 동작을 Sentry `ui.funnel` span으로도 기록하되 공식 분모는 내부 분석계를 사용한다.
+가입 단계마다 고유 URL을 만들고 경로 진입 시 내부 분석 API에 `page_view`, 전환 시 `advanced`, 명시 이탈 시 `abandoned`, 최종 성공 시 `completed`를 보낸다. 가입 시도 ID는 `sessionStorage`에 보관해 URL 이동과 새로고침에도 유지한다. 같은 동작을 Sentry `ui.funnel` span과 `page.path`로도 기록하되 공식 분모는 내부 분석계를 사용한다.
+
+이탈은 unload 이벤트 수신 여부로 결정하지 않는다. 서버가 같은 가입 시도의 다음 단계 `page_view` 또는 완료를 기다리고, `FUNNEL_DROPOFF_GRACE_PERIOD_MS`가 지난 미전환 시도를 확정 이탈로 계산한다. 유예시간 안의 시도는 판정 대기로 분리하고, 같은 단계 새로고침은 도달 수에서 중복 제거한다.
 
 ## 6. 서비스 분리
 
@@ -133,15 +152,16 @@ Sentry.logger.error("frontend_payment_failed", {
 
 모든 이벤트·Log·Span에 공통 `service`를 적용한다. 프로젝트와 service 값이 서로 모순되지 않도록 CI taxonomy test를 둔다.
 
-## 7. 가명 사용자 ID
+## 7. 원본 사용자 ID와 내부 가명 ID
 
 프론트에서 원본 UUID를 단순 SHA hash하지 않는다. 인증된 내부 backend가 KMS/HSM의 비밀키로 HMAC 또는 opaque mapping ID를 발급한다.
 
 ```text
-원본 UUID --내부 TLS--> identity service --dbg_v1_*--> browser/Sentry
+원본 고객 ID --Sentry scope--> Sentry
+원본 고객 ID --내부 TLS--> identity service --dbg_v1_*--> 내부 분석/JIT
 ```
 
-프론트는 발급값 검증 후에만 `Sentry.setUser({id})`를 호출한다. 로그아웃 시 `Sentry.setUser(null)`을 호출한다. Relay의 `$user.id` 규칙은 승인 형식 외 값을 제거해야 하며 원본 제거와 승인 ID 보존 probe를 모두 통과해야 한다.
+프론트는 원본 고객 ID로 `Sentry.setUser({id})`를 호출하고 로그아웃 시 `Sentry.setUser(null)`을 호출한다. SDK와 Relay는 `$user.id`를 보존하되 email, username, IP 등 다른 사용자 필드를 제거한다. HMAC 발급값은 내부 분석과 JIT API에만 전달한다.
 
 ## 8. JIT 개인정보 조회
 

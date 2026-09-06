@@ -7,7 +7,20 @@ const mocks = vi.hoisted(() => ({
   fetchNormalizedMetrics: vi.fn(async () => ({
     generatedAt: "now",
     errorRanking: [{ service: "payment", issueKey: "synthetic.payment.timeout", errorEvents: 2, affectedUsers: 1, activeUsers: 4, affectedUserRate: 25 }],
-    funnel: { totalAttempts: 2, completedAttempts: 1, steps: [{ id: "terms", label: "약관 동의", reached: 2, dropOff: 1, dropOffRate: 50, conversionRate: 50 }] },
+    funnel: {
+      dropOffGracePeriodMs: 30 * 60 * 1000,
+      totalAttempts: 2,
+      completedAttempts: 1,
+      steps: [{
+        id: "terms",
+        label: "약관 동의",
+        reached: 2,
+        dropOff: 1,
+        pendingDropOff: 0,
+        dropOffRate: 50,
+        conversionRate: 50,
+      }],
+    },
   })),
   recordUsageEvent: vi.fn(),
   emitStructuredLog: vi.fn(),
@@ -22,6 +35,7 @@ describe("NormalizedMetricsSection", () => {
     render(<NormalizedMetricsSection pseudonymousId="dbg_v1_R2Z4s9QmT6xK1pW8nB3cD5fH" />);
     expect(await screen.findByText("25%")).toBeTruthy();
     expect(screen.getByText("50%")).toBeTruthy();
+    expect(screen.getByText("확정 이탈 1명")).toBeTruthy();
   });
 
   it("Sentry 오류와 내부 영향 사용자 이벤트를 함께 기록한다", async () => {

@@ -6,11 +6,12 @@ export async function recordFunnelEvent(
   step: SignupStepId,
   event: FunnelEventName,
 ): Promise<void> {
+  const pagePath = `/signup-funnel/${step}`;
   Sentry.addBreadcrumb({
     category: "signup.funnel",
     level: "info",
     message: `${step}.${event}`,
-    data: { step, event, attempt_id: attemptId },
+    data: { step, event, attempt_id: attemptId, page: pagePath },
   });
 
   await Sentry.startSpan(
@@ -22,6 +23,7 @@ export async function recordFunnelEvent(
         "funnel.step": step,
         "funnel.event": event,
         "signup.attempt_id": attemptId,
+        "page.path": pagePath,
         service: "membership",
       },
     },

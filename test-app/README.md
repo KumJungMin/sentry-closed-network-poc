@@ -20,7 +20,30 @@ pnpm analytics  # 터미널 1: 정확한 가입 퍼널 집계
 pnpm dev        # 터미널 2: 테스트 앱
 ```
 
-브라우저에서 `http://127.0.0.1:5173`에 접속합니다.
+브라우저에서 `http://127.0.0.1:5173/collection`에 접속합니다. `/`로 접속하면 Sentry 초기화 전에 `/collection`으로 정규화됩니다.
+
+## 기능 URL
+
+| 기능 | 경로 |
+| --- | --- |
+| 기본 이벤트 수집 | `/collection` |
+| 커스텀 Tag·Context | `/custom-data` |
+| 가입 퍼널 | `/signup-funnel` |
+| 가입 - 약관 동의 | `/signup-funnel/terms` |
+| 가입 - 계좌 인증 | `/signup-funnel/account` |
+| 가입 - 휴대폰 인증 | `/signup-funnel/phone` |
+| 가입 - CDD | `/signup-funnel/cdd` |
+| 구조화 로그 | `/logs` |
+| 서비스별 오류 | `/service-errors` |
+| 가명 사용자 연결 | `/identity` |
+| 개인정보 조회 게이트 | `/privacy` |
+| 사용자 기준 지표 | `/metrics` |
+| 보안 검증 | `/security` |
+| 최근 실행 결과 | `/execution-log` |
+
+라우팅은 `react-router-dom`의 `BrowserRouter`를 사용합니다. 별도 정적 서버에 배포할 때는 위 경로를 직접 요청해도 `index.html`을 반환하도록 SPA fallback을 설정해야 합니다.
+
+가입 단계 URL에 진입하면 `page_view`가 자동 기록됩니다. 다음 단계 pageView 또는 완료 없이 30분이 지나면 확정 이탈이며, 그 전에는 판정 대기로 표시됩니다. 즉시 검수할 때는 `FUNNEL_DROPOFF_GRACE_PERIOD_MS=0 pnpm analytics`로 분석 서버를 실행합니다. 기존 `entered` 데이터도 계속 집계됩니다.
 
 ## 검증
 
@@ -31,7 +54,7 @@ pnpm exec vitest run
 pnpm build
 ```
 
-Relay 서버 방어와 가명 ID 보존까지 재검증하려면 저장소 root에서 다음을 실행합니다.
+Relay 서버 방어와 원본 `user.id` 보존까지 재검증하려면 저장소 root에서 다음을 실행합니다.
 
 ```bash
 ./scripts/verify-phase7-data-scrubbing.sh --server-probe

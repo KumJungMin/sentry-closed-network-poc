@@ -5,17 +5,9 @@
       "redaction": {
         "method": "remove"
       }
-    },
-    "phase7-remove-invalid-user-id-v1": {
-      "type": "pattern",
-      "pattern": "^(?:.{0,26}|.{88,}|[^d].*|d(?:$|[^b].*)|db(?:$|[^g].*)|dbg(?:$|[^_].*)|dbg_(?:$|[^v].*)|dbg_v(?:$|[^1].*)|dbg_v1(?:$|[^_].*)|dbg_v1_[A-Za-z0-9_-]*[^A-Za-z0-9_-].*)$",
-      "redaction": {
-        "method": "remove"
-      }
     }
   },
   "applications": {
-    "$user.id": ["phase7-remove-invalid-user-id-v1"],
     "$user.email": ["phase7-remove-anything-v1"],
     "$user.username": ["phase7-remove-anything-v1"],
     "$user.ip_address": ["phase7-remove-anything-v1"],

@@ -1,4 +1,12 @@
 import * as Sentry from "@sentry/react";
+import { useEffect } from "react";
+import {
+  createRoutesFromChildren,
+  matchRoutes,
+  Routes,
+  useLocation,
+  useNavigationType,
+} from "react-router-dom";
 import {
   buildCollectionPolicy,
   ignoredErrors,
@@ -36,7 +44,13 @@ if (sentryRuntime.enabled) {
     release: sentryRuntime.release,
     enableLogs: sentryRuntime.logsEnabled,
     integrations: [
-      Sentry.browserTracingIntegration(),
+      Sentry.reactRouterBrowserTracingIntegration({
+        useEffect,
+        useLocation,
+        useNavigationType,
+        createRoutesFromChildren,
+        matchRoutes,
+      }),
       ...(collectionPolicy.replayEnabled ? [createReplayIntegration()] : []),
     ],
     tracesSampleRate: collectionPolicy.tracesSampleRate,
@@ -49,3 +63,7 @@ if (sentryRuntime.enabled) {
     tracePropagationTargets: ["localhost", "127.0.0.1", /^\//],
   });
 }
+
+export const SentryRoutes = sentryRuntime.enabled
+  ? Sentry.wrapReactRouterRouting(Routes)
+  : Routes;
