@@ -1,0 +1,32 @@
+{
+  "name": "@poc/observability",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run src",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@poc/flow-contract": "workspace:*",
+    "@sentry/react": "10.72.0"
+  },
+  "peerDependencies": {
+    "react": "19.2.8",
+    "react-router-dom": "7.18.3"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "react": "19.2.8",
+    "react-router-dom": "7.18.3",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  }
+}
