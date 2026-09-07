@@ -47,6 +47,9 @@ importers:
       '@poc/flow-app':
         specifier: workspace:*
         version: link:../../packages/flow-app
+      '@poc/observability':
+        specifier: workspace:*
+        version: link:../../packages/observability
       react:
         specifier: 19.2.8
         version: 19.2.8

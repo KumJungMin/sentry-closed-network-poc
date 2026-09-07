@@ -1,4 +1,5 @@
 import { DomainFlowApp, type DomainFlowAppProps } from "@poc/flow-app";
+import { flowEventSink, SentryRoutes } from "./observability.js";
 
 const stepContent = {
   order: {
@@ -46,6 +47,8 @@ export function App() {
       accentColor="#7c3aed"
       appTitle="결제 프로세스"
       flowName="payment"
+      onFlowEvent={flowEventSink}
+      RoutesComponent={SentryRoutes}
       stepContent={stepContent}
       userId={import.meta.env.VITE_POC_USER_ID ?? "CUSTOMER-PAYMENT-001"}
     />
