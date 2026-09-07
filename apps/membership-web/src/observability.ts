@@ -1,5 +1,5 @@
 import {
-  createSentryFlowEventSink,
+  createObservedFlowEventSink,
   initializeObservability,
   SentryRoutes,
 } from "@poc/observability";
@@ -16,5 +16,5 @@ export const observabilityRuntime = initializeObservability({
   logsEnabled: import.meta.env.VITE_SENTRY_LOGS_ENABLED?.toLowerCase() !== "false",
 });
 
-export const flowEventSink = createSentryFlowEventSink();
+export const flowEventSink = createObservedFlowEventSink();
 export { SentryRoutes };
