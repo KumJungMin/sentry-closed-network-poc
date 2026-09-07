@@ -22,6 +22,9 @@ class DashboardDrilldownPatchTest(unittest.TestCase):
     def test_chart_patch_adds_event_drilldown(self) -> None:
         source = """import {decodeSorts} from 'sentry/utils/queryString';
 import {eventViewFromWidget} from 'sentry/views/dashboards/utils';
+          <TableComponent tableResults={tableResults} {...props} />
+function TableComponent({
+}
 function CategoricalSeriesComponent(props: TableComponentProps): React.ReactNode {
   const {widget, tableResults, loading} = props;
   const categoricalSeriesData = transformTableToCategoricalSeries(filteredQuery, {
@@ -33,10 +36,17 @@ function CategoricalSeriesComponent(props: TableComponentProps): React.ReactNode
   });
 
   const plottables = categoricalSeriesData.map(series => new Bars(series));
+const StyledErrorPanel = styled(ErrorPanel)`
+  padding: ${p => p.theme.space.xl};
+`;
 """
 
         patched = patch_chart(source)
 
+        self.assertIn("isDomainFlowFunnelWidget", patched)
+        self.assertIn("DomainFlowFunnelCard", patched)
+        self.assertIn("getDomainFlowFunnelSteps", patched)
+        self.assertIn("FunnelFlowCard", patched)
         self.assertIn("getCategoricalErrorDrilldownWidget", patched)
         self.assertIn("widget.widgetType === WidgetType.ERRORS", patched)
         self.assertIn("getWidgetDiscoverUrl(", patched)
@@ -51,6 +61,9 @@ function CategoricalSeriesComponent(props: TableComponentProps): React.ReactNode
 
         self.assertIn("builds an event-level Discover query", patched)
         self.assertIn('service:"payment api"', patched)
+        self.assertIn("keeps only the newest domain flow snapshot", patched)
+        self.assertIn("getDomainFlowFunnelSteps", patched)
+        self.assertIn("Parameters<typeof getDomainFlowFunnelSteps>[0]", patched)
 
     def test_table_view_patch_links_error_titles(self) -> None:
         source = """    } else if (columnKey === 'transaction' && dataRow.transaction) {

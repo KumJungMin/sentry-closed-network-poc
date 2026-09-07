@@ -1,12 +1,14 @@
-# Sentry 업무 오류 막대 상세보기
+# Sentry 대시보드 UI 커스텀
 
-Self-hosted Sentry 26.8.0의 오류 이벤트 `categorical_bar` 위젯에 상세보기 동작을 추가한다.
+Self-hosted Sentry 26.8.0의 대시보드 위젯에 PoC용 탐색 동작과 플로우 시각화를 추가한다.
 
 - 막대 선택 시 같은 기간·프로젝트·환경·대시보드 필터를 유지한다.
 - 선택한 분류값을 검색 조건에 추가한다.
 - Discover의 개별 오류 이벤트 표로 이동한다.
 - 결과 표의 이벤트 ID 또는 오류 제목을 선택하면 Breadcrumbs가 있는 Event Details로 이동한다.
 - 오류 이벤트 위젯에만 적용하며 Logs·Spans 차트 동작은 바꾸지 않는다.
+- `snapshot.type:domain_flow_funnel` span table 위젯은 일반 표 대신 퍼널 카드로 렌더링한다.
+- 퍼널 카드는 `flow.step_index` 순서로 단계를 정렬하고 `flow.step_display`, `flow.page_path`, 도달, 진행, 확정 이탈, 판정 대기, 이탈률을 함께 보여준다.
 
 ## 빌드
 
@@ -42,6 +44,7 @@ docker compose \
 3. Explore 상세 표로 이동하고 선택한 Tag 필터가 검색 조건에 추가됐는지 확인한다.
 4. 표의 이벤트 ID 또는 오류 제목을 선택해 Event Details로 이동한다.
 5. Event Details의 Breadcrumbs에서 오류 직전 클릭·화면 이동·요청 기록을 확인한다.
+6. `http://127.0.0.1:9000/organizations/sentry/dashboard/9/`의 `플로우별 최신 정확 집계` 위젯에서 가입·송금·결제 퍼널 카드가 단계 순서대로 보이는지 확인한다.
 
 상세 표는 최대 100개를 최신순으로 표시한다. 원래 대시보드의 기간, 프로젝트, 환경, 공통 필터는 그대로 유지한다.
 

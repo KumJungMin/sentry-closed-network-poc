@@ -41,6 +41,200 @@ def patch_chart(source: str) -> str:
         "} from 'sentry/views/dashboards/utils';\n",
         label="dashboard URL import",
     )
+    source = replace_once(
+        source,
+        """          <TableComponent tableResults={tableResults} {...props} />
+""",
+        """          {isDomainFlowFunnelWidget(widget) ? (
+            <DomainFlowFunnelCard tableResults={tableResults} loading={loading} />
+          ) : (
+            <TableComponent tableResults={tableResults} {...props} />
+          )}
+""",
+        label="domain flow funnel table replacement",
+    )
+
+    old = """function TableComponent({
+"""
+    new = """function isDomainFlowFunnelWidget(widget: Widget): boolean {
+  const query = widget.queries[0];
+
+  return (
+    widget.widgetType === WidgetType.SPANS &&
+    widget.displayType === DisplayType.TABLE &&
+    (query?.conditions ?? '').includes('snapshot.type:domain_flow_funnel') &&
+    (query?.fields ?? []).includes('flow.step_display')
+  );
+}
+
+export type DomainFlowFunnelStep = {
+  completedAttempts: number;
+  dropOff: number;
+  dropOffRate: number;
+  flowSlug: string;
+  key: string;
+  pagePath: string;
+  pendingDropOff: number;
+  progressed: number;
+  reached: number;
+  service: string;
+  stepDisplay: string;
+  stepIndex: number;
+  timestamp: string;
+  totalAttempts: number;
+};
+
+function getFunnelField(row: Record<string, unknown>, fields: string[]): string {
+  for (const field of fields) {
+    const value = row[field];
+    if (defined(value)) {
+      return String(value);
+    }
+  }
+
+  return '';
+}
+
+function getFunnelNumber(row: Record<string, unknown>, fields: string[]): number {
+  const value = Number(getFunnelField(row, fields));
+
+  return Number.isFinite(value) ? value : 0;
+}
+
+export function getDomainFlowFunnelSteps(
+  tableResults: TableComponentProps['tableResults']
+): DomainFlowFunnelStep[] {
+  const rows = (tableResults?.[0]?.data ?? []) as Array<Record<string, unknown>>;
+  const latestByStep = new Map<string, DomainFlowFunnelStep>();
+
+  for (const row of rows) {
+    const service = getFunnelField(row, ['service']);
+    const flowSlug = getFunnelField(row, ['flow.slug']);
+    const stepIndex = getFunnelNumber(row, [
+      'tags[flow.step_index,number]',
+      'flow.step_index',
+    ]);
+    const stepDisplay = getFunnelField(row, ['flow.step_display', 'flow.step_label']);
+
+    if (!service || !flowSlug || !stepIndex || !stepDisplay) {
+      continue;
+    }
+
+    const timestamp = getFunnelField(row, ['timestamp']);
+    const key = `${service}:${flowSlug}:${stepIndex}`;
+    const step = {
+      key,
+      timestamp,
+      service,
+      flowSlug,
+      stepIndex,
+      stepDisplay,
+      pagePath: getFunnelField(row, ['flow.page_path']),
+      totalAttempts: getFunnelNumber(row, [
+        'tags[flow.total_attempts,number]',
+        'flow.total_attempts',
+      ]),
+      completedAttempts: getFunnelNumber(row, [
+        'tags[flow.completed_attempts,number]',
+        'flow.completed_attempts',
+      ]),
+      reached: getFunnelNumber(row, ['tags[flow.reached,number]', 'flow.reached']),
+      progressed: getFunnelNumber(row, [
+        'tags[flow.progressed,number]',
+        'flow.progressed',
+      ]),
+      dropOff: getFunnelNumber(row, ['tags[flow.drop_off,number]', 'flow.drop_off']),
+      pendingDropOff: getFunnelNumber(row, [
+        'tags[flow.pending_drop_off,number]',
+        'flow.pending_drop_off',
+      ]),
+      dropOffRate: getFunnelNumber(row, [
+        'tags[flow.drop_off_rate,number]',
+        'flow.drop_off_rate',
+      ]),
+    };
+    const previous = latestByStep.get(key);
+
+    if (!previous || Date.parse(timestamp) >= Date.parse(previous.timestamp)) {
+      latestByStep.set(key, step);
+    }
+  }
+
+  return Array.from(latestByStep.values()).sort((left, right) => {
+    const flowCompare =
+      left.service.localeCompare(right.service) || left.flowSlug.localeCompare(right.flowSlug);
+
+    return flowCompare || left.stepIndex - right.stepIndex;
+  });
+}
+
+function DomainFlowFunnelCard({
+  loading,
+  tableResults,
+}: Pick<TableComponentProps, 'loading' | 'tableResults'>): React.ReactNode {
+  if (loading || !tableResults?.[0]) {
+    return <LoadingPlaceholder />;
+  }
+
+  const steps = getDomainFlowFunnelSteps(tableResults);
+  const groupedSteps = new Map<string, DomainFlowFunnelStep[]>();
+
+  for (const step of steps) {
+    const key = `${step.service}:${step.flowSlug}`;
+    groupedSteps.set(key, [...(groupedSteps.get(key) ?? []), step]);
+  }
+
+  if (groupedSteps.size === 0) {
+    return <WidgetError error={MISSING_DATA_MESSAGE} />;
+  }
+
+  return (
+    <FunnelBoard>
+      {Array.from(groupedSteps.entries()).map(([key, groupSteps]) => {
+        const firstStep = groupSteps[0]!;
+        const maxDropOffRate = Math.max(...groupSteps.map(step => step.dropOffRate));
+
+        return (
+          <FunnelFlowCard key={key}>
+            <FunnelFlowHeader>
+              <div>
+                <strong>{firstStep.flowSlug}</strong>
+                <span>{firstStep.service}</span>
+              </div>
+              <FunnelRate>{maxDropOffRate.toFixed(1)}%</FunnelRate>
+            </FunnelFlowHeader>
+            <FunnelSteps>
+              {groupSteps.map(step => (
+                <FunnelStep key={step.key}>
+                  <FunnelStepHeader>
+                    <strong>{step.stepDisplay}</strong>
+                    <code>{step.pagePath}</code>
+                  </FunnelStepHeader>
+                  <FunnelStepBar>
+                    <span style={{width: `${Math.min(step.dropOffRate, 100)}%`}} />
+                  </FunnelStepBar>
+                  <FunnelStepMetrics>
+                    <span>도달 {step.reached}</span>
+                    <span>진행 {step.progressed}</span>
+                    <span>이탈 {step.dropOff}</span>
+                    <strong>{step.dropOffRate.toFixed(1)}%</strong>
+                  </FunnelStepMetrics>
+                  {step.pendingDropOff > 0 && (
+                    <FunnelPending>판정 대기 {step.pendingDropOff}</FunnelPending>
+                  )}
+                </FunnelStep>
+              ))}
+            </FunnelSteps>
+          </FunnelFlowCard>
+        );
+      })}
+    </FunnelBoard>
+  );
+}
+
+function TableComponent({
+"""
+    source = replace_once(source, old, new, label="domain flow funnel card")
 
     old = """function CategoricalSeriesComponent(props: TableComponentProps): React.ReactNode {
   const {widget, tableResults, loading} = props;
@@ -132,7 +326,132 @@ function CategoricalSeriesComponent(props: TableComponentProps): React.ReactNode
       })
   );
 """
-    return replace_once(source, old, new, label="categorical bar drill-down")
+    source = replace_once(source, old, new, label="categorical bar drill-down")
+
+    old = """const StyledErrorPanel = styled(ErrorPanel)`
+  padding: ${p => p.theme.space.xl};
+`;
+"""
+    new = """const FunnelBoard = styled('div')`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: ${p => p.theme.space.md};
+  padding: ${p => p.theme.space.lg};
+`;
+
+const FunnelFlowCard = styled('section')`
+  display: flex;
+  flex-direction: column;
+  gap: ${p => p.theme.space.md};
+  min-width: 0;
+  padding: ${p => p.theme.space.lg};
+  border: 1px solid ${p => p.theme.tokens.border.primary};
+  border-radius: ${p => p.theme.radius.md};
+  background: ${p => p.theme.tokens.background.primary};
+`;
+
+const FunnelFlowHeader = styled('header')`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: ${p => p.theme.space.md};
+
+  div {
+    display: grid;
+    gap: ${p => p.theme.space.xs};
+    min-width: 0;
+  }
+
+  strong {
+    color: ${p => p.theme.tokens.content.primary};
+    font-size: 14px;
+  }
+
+  span {
+    color: ${p => p.theme.tokens.content.secondary};
+    font-size: 12px;
+  }
+`;
+
+const FunnelRate = styled('strong')`
+  color: ${p => p.theme.tokens.content.danger};
+  font-size: 20px;
+  white-space: nowrap;
+`;
+
+const FunnelSteps = styled('ol')`
+  display: grid;
+  gap: ${p => p.theme.space.sm};
+  margin: 0;
+  padding: 0;
+  list-style: none;
+`;
+
+const FunnelStep = styled('li')`
+  display: grid;
+  gap: ${p => p.theme.space.sm};
+  min-width: 0;
+  padding: ${p => p.theme.space.md};
+  border-radius: ${p => p.theme.radius.sm};
+  background: ${p => p.theme.tokens.background.secondary};
+`;
+
+const FunnelStepHeader = styled('div')`
+  display: grid;
+  gap: ${p => p.theme.space.xs};
+  min-width: 0;
+
+  strong {
+    color: ${p => p.theme.tokens.content.primary};
+  }
+
+  code {
+    overflow: hidden;
+    color: ${p => p.theme.tokens.content.secondary};
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
+
+const FunnelStepBar = styled('div')`
+  height: 6px;
+  overflow: hidden;
+  border-radius: ${p => p.theme.radius.sm};
+  background: ${p => p.theme.tokens.background.tertiary};
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: ${p => p.theme.tokens.content.danger};
+  }
+`;
+
+const FunnelStepMetrics = styled('div')`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ${p => p.theme.space.sm};
+  color: ${p => p.theme.tokens.content.secondary};
+  font-size: 12px;
+
+  strong {
+    margin-left: auto;
+    color: ${p => p.theme.tokens.content.primary};
+  }
+`;
+
+const FunnelPending = styled('span')`
+  color: ${p => p.theme.tokens.content.warning};
+  font-size: 12px;
+`;
+
+const StyledErrorPanel = styled(ErrorPanel)`
+  padding: ${p => p.theme.space.xl};
+`;
+"""
+    return replace_once(source, old, new, label="domain flow funnel styles")
 
 
 def patch_chart_test(source: str) -> str:
@@ -141,6 +460,7 @@ def patch_chart_test(source: str) -> str:
         "import WidgetCardChart from 'sentry/views/dashboards/widgetCard/chart';\n",
         "import WidgetCardChart, {\n"
         "  getCategoricalErrorDrilldownWidget,\n"
+        "  getDomainFlowFunnelSteps,\n"
         "} from 'sentry/views/dashboards/widgetCard/chart';\n",
         label="chart test import",
     )
@@ -175,6 +495,62 @@ def patch_chart_test(source: str) -> str:
       columns: ['id', 'timestamp', 'title', 'project', 'user', 'service'],
       orderby: '-timestamp',
     });
+  });
+
+  it('keeps only the newest domain flow snapshot per ordered step', () => {
+    const steps = getDomainFlowFunnelSteps([
+      {
+        title: 'domain flow',
+        meta: {fields: {}, units: {}},
+        data: [
+          {
+            timestamp: '2026-09-07T00:00:00.000Z',
+            service: 'frontend-membership',
+            'flow.slug': 'membership',
+            'tags[flow.step_index,number]': 2,
+            'flow.step_display': '02. 계정 정보',
+            'flow.page_path': '/signup/account',
+            'tags[flow.reached,number]': 8,
+            'tags[flow.progressed,number]': 6,
+            'tags[flow.drop_off,number]': 2,
+            'tags[flow.pending_drop_off,number]': 0,
+            'tags[flow.drop_off_rate,number]': 25,
+          },
+          {
+            timestamp: '2026-09-07T00:01:00.000Z',
+            service: 'frontend-membership',
+            'flow.slug': 'membership',
+            'tags[flow.step_index,number]': 1,
+            'flow.step_display': '01. 약관 동의',
+            'flow.page_path': '/signup/terms',
+            'tags[flow.reached,number]': 10,
+            'tags[flow.progressed,number]': 8,
+            'tags[flow.drop_off,number]': 1,
+            'tags[flow.pending_drop_off,number]': 1,
+            'tags[flow.drop_off_rate,number]': 10,
+          },
+          {
+            timestamp: '2026-09-07T00:02:00.000Z',
+            service: 'frontend-membership',
+            'flow.slug': 'membership',
+            'tags[flow.step_index,number]': 2,
+            'flow.step_display': '02. 계정 정보',
+            'flow.page_path': '/signup/account',
+            'tags[flow.reached,number]': 9,
+            'tags[flow.progressed,number]': 6,
+            'tags[flow.drop_off,number]': 3,
+            'tags[flow.pending_drop_off,number]': 0,
+            'tags[flow.drop_off_rate,number]': 33.3,
+          },
+        ],
+      },
+    ] as Parameters<typeof getDomainFlowFunnelSteps>[0]);
+
+    expect(steps.map(step => step.stepDisplay)).toEqual([
+      '01. 약관 동의',
+      '02. 계정 정보',
+    ]);
+    expect(steps[1]!.dropOffRate).toBe(33.3);
   });
 
 """
