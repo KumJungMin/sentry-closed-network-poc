@@ -1,4 +1,6 @@
 export { DomainFlowApp } from "./DomainFlowApp.js";
+export { FlowTechnicalError, createMockFlowSubmitter } from "./mock-submit.js";
+export type { MockFlowSubmitterOptions } from "./mock-submit.js";
 export {
   createAttemptId,
   getFlowStorageKey,
