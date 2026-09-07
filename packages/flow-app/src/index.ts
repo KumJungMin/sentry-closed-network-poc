@@ -1,3 +1,4 @@
+export { DomainFlowApp } from "./DomainFlowApp.js";
 export {
   createAttemptId,
   getFlowStorageKey,

@@ -34,6 +34,8 @@ describe("플로우 브라우저 세션", () => {
   it("필수 입력과 양수 금액을 검증한다", () => {
     expect(validateStepValue({ name: "terms", label: "약관", type: "checkbox", required: true }, false))
       .toBe("약관 항목을 확인해 주세요.");
+    expect(validateStepValue({ name: "terms", label: "약관", type: "checkbox", required: true }, true))
+      .toBeUndefined();
     expect(validateStepValue({ name: "amount", label: "금액", type: "number", required: true }, "0"))
       .toBe("금액 항목에는 0보다 큰 값을 입력해 주세요.");
     expect(validateStepValue({ name: "amount", label: "금액", type: "number", required: true }, "1000"))

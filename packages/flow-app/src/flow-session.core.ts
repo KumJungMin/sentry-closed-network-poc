@@ -41,7 +41,9 @@ export function validateStepValue(
   value: string | boolean | undefined,
 ): string | undefined {
   if (!field || !field.required) return undefined;
-  if (field.type === "checkbox" && value !== true) return `${field.label} 항목을 확인해 주세요.`;
+  if (field.type === "checkbox") {
+    return value === true ? undefined : `${field.label} 항목을 확인해 주세요.`;
+  }
   if (typeof value !== "string" || value.trim() === "") return `${field.label} 항목을 입력해 주세요.`;
   if (field.type === "number" && (!Number.isFinite(Number(value)) || Number(value) <= 0)) {
     return `${field.label} 항목에는 0보다 큰 값을 입력해 주세요.`;
