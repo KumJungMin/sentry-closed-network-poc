@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DomainFlowApp } from "./DomainFlowApp.js";
 import type { DomainFlowAppProps } from "./types.js";
 
@@ -26,6 +26,7 @@ const membershipProps: DomainFlowAppProps = {
 
 describe("공통 도메인 플로우 화면", () => {
   beforeEach(() => window.sessionStorage.clear());
+  afterEach(cleanup);
 
   it("필수 입력을 검증하고 성공하면 다음 URL 화면으로 이동한다", async () => {
     const user = userEvent.setup();
@@ -54,5 +55,58 @@ describe("공통 도메인 플로우 화면", () => {
 
     expect(screen.getByRole("heading", { name: "휴대폰 인증" })).toBeTruthy();
     expect(screen.getByText("단계 3 / 5")).toBeTruthy();
+  });
+
+  it("예상 업무 거절은 현재 화면에 남기고 실패 이벤트를 기록한다", async () => {
+    const user = userEvent.setup();
+    const onFlowEvent = vi.fn();
+    render(
+      <MemoryRouter initialEntries={["/signup/terms"]}>
+        <DomainFlowApp
+          {...membershipProps}
+          onFlowEvent={onFlowEvent}
+          submitStep={vi.fn().mockResolvedValue({
+            status: "business_decline",
+            errorCode: "MEMBERSHIP_REJECTED",
+            message: "가입할 수 없는 상태입니다.",
+          })}
+        />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole("checkbox", { name: "필수 약관" }));
+    await user.click(screen.getByRole("button", { name: "다음" }));
+    expect(await screen.findByRole("alert")).toHaveProperty("textContent", "가입할 수 없는 상태입니다.");
+    expect(onFlowEvent).toHaveBeenCalledWith(expect.objectContaining({
+      event: "step_failed",
+      outcome: "business_decline",
+    }));
+  });
+
+  it("기술 실패는 원본 오류와 플로우 문맥을 exception sink로 전달한다", async () => {
+    const user = userEvent.setup();
+    const error = Object.assign(new Error("timeout"), { code: "MEMBERSHIP_TIMEOUT" });
+    const onFlowException = vi.fn();
+    render(
+      <MemoryRouter initialEntries={["/signup/terms"]}>
+        <DomainFlowApp
+          {...membershipProps}
+          onFlowException={onFlowException}
+          submitStep={vi.fn().mockRejectedValue(error)}
+        />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole("checkbox", { name: "필수 약관" }));
+    await user.click(screen.getByRole("button", { name: "다음" }));
+    expect(await screen.findByRole("alert")).toHaveProperty(
+      "textContent",
+      "일시적인 기술 오류가 발생했습니다. 다시 시도해 주세요.",
+    );
+    expect(onFlowException).toHaveBeenCalledWith(expect.objectContaining({
+      error,
+      errorCode: "MEMBERSHIP_TIMEOUT",
+      step: "terms",
+    }));
   });
 });

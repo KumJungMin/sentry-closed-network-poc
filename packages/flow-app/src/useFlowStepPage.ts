@@ -8,7 +8,13 @@ import {
   validateStepValue,
   type FlowSession,
 } from "./flow-session.core.js";
-import type { FlowEventSink, FlowStepContent } from "./types.js";
+import type {
+  FlowEventSink,
+  FlowExceptionContext,
+  FlowStepContent,
+  FlowStepSubmitContext,
+  FlowStepSubmitResult,
+} from "./types.js";
 
 interface UseFlowStepPageOptions {
   flowName: FlowName;
@@ -16,10 +22,20 @@ interface UseFlowStepPageOptions {
   content: FlowStepContent;
   userId: string;
   onFlowEvent?: FlowEventSink;
+  onFlowException?: (context: FlowExceptionContext) => void;
+  submitStep?: (context: FlowStepSubmitContext) => Promise<FlowStepSubmitResult>;
 }
 
 export function useFlowStepPage(options: UseFlowStepPageOptions) {
-  const { content, flowName, onFlowEvent, stepId, userId } = options;
+  const {
+    content,
+    flowName,
+    onFlowEvent,
+    onFlowException,
+    stepId,
+    submitStep,
+    userId,
+  } = options;
   const definition = getFlowDefinition(flowName);
   const navigate = useNavigate();
   const storageKey = getFlowStorageKey(flowName);
@@ -28,6 +44,7 @@ export function useFlowStepPage(options: UseFlowStepPageOptions) {
   const isLastStep = currentIndex === definition.steps.length - 1;
   const [session, setSession] = useState<FlowSession>(() => loadOrCreateSession(storageKey));
   const [errorMessage, setErrorMessage] = useState<string>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fieldName = content.field?.name;
   const fieldValue = fieldName === undefined
     ? ""
@@ -77,6 +94,10 @@ export function useFlowStepPage(options: UseFlowStepPageOptions) {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
+    void submitCurrentStep();
+  }
+
+  async function submitCurrentStep(): Promise<void> {
     const validationMessage = validateStepValue(content.field, fieldValue);
     if (validationMessage) {
       setErrorMessage(validationMessage);
@@ -90,6 +111,7 @@ export function useFlowStepPage(options: UseFlowStepPageOptions) {
       return;
     }
     setErrorMessage(undefined);
+    setIsSubmitting(true);
     emitEvent(onFlowEvent, {
       attemptId: session.attemptId,
       userId,
@@ -97,15 +119,55 @@ export function useFlowStepPage(options: UseFlowStepPageOptions) {
       step: stepId,
       event: "step_submitted",
     });
-    emitEvent(onFlowEvent, {
+
+    const context = {
       attemptId: session.attemptId,
       userId,
       flowName,
       step: stepId,
-      event: "step_succeeded",
-    });
-    const nextStep = definition.steps[currentIndex + 1];
-    if (nextStep) navigate(nextStep.path);
+      values: session.values,
+    } satisfies FlowStepSubmitContext;
+
+    try {
+      const result = submitStep ? await submitStep(context) : { status: "success" as const };
+      if (result.status === "business_decline") {
+        setErrorMessage(result.message);
+        emitEvent(onFlowEvent, {
+          attemptId: session.attemptId,
+          userId,
+          flowName,
+          step: stepId,
+          event: "step_failed",
+          outcome: "business_decline",
+          errorCode: result.errorCode,
+        });
+        return;
+      }
+      emitEvent(onFlowEvent, {
+        attemptId: session.attemptId,
+        userId,
+        flowName,
+        step: stepId,
+        event: "step_succeeded",
+      });
+      const nextStep = definition.steps[currentIndex + 1];
+      if (nextStep) navigate(nextStep.path);
+    } catch (error) {
+      const errorCode = getErrorCode(error);
+      setErrorMessage("일시적인 기술 오류가 발생했습니다. 다시 시도해 주세요.");
+      if (onFlowException) onFlowException({ ...context, errorCode, error });
+      else emitEvent(onFlowEvent, {
+        attemptId: session.attemptId,
+        userId,
+        flowName,
+        step: stepId,
+        event: "step_failed",
+        outcome: "technical_error",
+        errorCode,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function handleBack(): void {
@@ -141,8 +203,22 @@ export function useFlowStepPage(options: UseFlowStepPageOptions) {
     handleSubmit,
     isFirstStep,
     isLastStep,
+    isSubmitting,
     stepCount: definition.steps.length,
   };
+}
+
+function getErrorCode(error: unknown): string {
+  if (
+    error
+    && typeof error === "object"
+    && "code" in error
+    && typeof error.code === "string"
+    && /^[A-Z0-9_:-]{1,64}$/u.test(error.code)
+  ) {
+    return error.code;
+  }
+  return "FLOW_SUBMISSION_FAILED";
 }
 
 function createEmptySession(): FlowSession {

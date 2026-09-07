@@ -19,6 +19,23 @@ export interface FlowStepContent {
 
 export type FlowEventSink = (event: FlowEventInput) => void | Promise<void>;
 
+export interface FlowStepSubmitContext {
+  attemptId: string;
+  userId: string;
+  flowName: FlowName;
+  step: FlowStepId;
+  values: Readonly<Record<string, string | boolean>>;
+}
+
+export type FlowStepSubmitResult =
+  | { status: "success" }
+  | { status: "business_decline"; errorCode: string; message: string };
+
+export interface FlowExceptionContext extends FlowStepSubmitContext {
+  errorCode: string;
+  error: unknown;
+}
+
 export interface DomainFlowAppProps {
   flowName: FlowName;
   appTitle: string;
@@ -26,5 +43,7 @@ export interface DomainFlowAppProps {
   userId: string;
   stepContent: Partial<Record<FlowStepId, FlowStepContent>>;
   onFlowEvent?: FlowEventSink;
+  onFlowException?: (context: FlowExceptionContext) => void;
+  submitStep?: (context: FlowStepSubmitContext) => Promise<FlowStepSubmitResult>;
   RoutesComponent?: ComponentType<RoutesProps>;
 }

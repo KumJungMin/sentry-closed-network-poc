@@ -67,8 +67,25 @@ interface FlowStepPageProps extends DomainFlowAppProps {
 }
 
 function FlowStepPage(_props: FlowStepPageProps) {
-  const { appTitle, content, flowName, onFlowEvent, step, userId } = _props;
-  const vm = useFlowStepPage({ flowName, stepId: step.id, content, onFlowEvent, userId });
+  const {
+    appTitle,
+    content,
+    flowName,
+    onFlowEvent,
+    onFlowException,
+    step,
+    submitStep,
+    userId,
+  } = _props;
+  const vm = useFlowStepPage({
+    flowName,
+    stepId: step.id,
+    content,
+    onFlowEvent,
+    onFlowException,
+    submitStep,
+    userId,
+  });
 
   return (
     <main className="flow-page">
@@ -108,10 +125,21 @@ function FlowStepPage(_props: FlowStepPageProps) {
               value={vm.fieldValue}
             />
             <div className="button-row">
-              {!vm.isFirstStep ? <button onClick={vm.handleBack} type="button">이전</button> : <span />}
-              <button className="primary-button" type="submit">다음</button>
+              {!vm.isFirstStep ? (
+                <button disabled={vm.isSubmitting} onClick={vm.handleBack} type="button">이전</button>
+              ) : <span />}
+              <button className="primary-button" disabled={vm.isSubmitting} type="submit">
+                {vm.isSubmitting ? "처리 중…" : "다음"}
+              </button>
             </div>
-            <button className="cancel-button" onClick={vm.handleCancel} type="button">이 플로우 취소</button>
+            <button
+              className="cancel-button"
+              disabled={vm.isSubmitting}
+              onClick={vm.handleCancel}
+              type="button"
+            >
+              이 플로우 취소
+            </button>
           </form>
         )}
       </section>
