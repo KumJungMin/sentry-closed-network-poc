@@ -99,7 +99,7 @@
         "widgetType": "logs",
         "interval": "5m",
         "limit": 20,
-        "queries": [{"name": "", "conditions": "message:frontend_flow_event", "fields": ["timestamp", "user.id", "service", "flow.name", "flow.step", "flow.event", "flow.attempt_id", "page.path"], "aggregates": [], "columns": ["timestamp", "user.id", "service", "flow.name", "flow.step", "flow.event", "flow.attempt_id", "page.path"], "fieldAliases": ["시각", "사용자 ID", "서비스", "플로우", "단계", "행동", "시도 ID", "URL"], "orderby": "-timestamp"}],
+        "queries": [{"name": "", "conditions": "has:flow.event", "fields": ["timestamp", "user.id", "service", "flow.name", "flow.step", "flow.event", "flow.attempt_id", "page.path"], "aggregates": [], "columns": ["timestamp", "user.id", "service", "flow.name", "flow.step", "flow.event", "flow.attempt_id", "page.path"], "fieldAliases": ["시각", "사용자 ID", "서비스", "플로우", "단계", "행동", "시도 ID", "URL"], "orderby": "-timestamp"}],
         "layout": {"x": 0, "y": 0, "w": 6, "h": 4, "minH": 3}
       },
       {

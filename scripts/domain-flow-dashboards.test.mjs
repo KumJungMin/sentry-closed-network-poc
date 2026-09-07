@@ -41,6 +41,7 @@ test("정확한 이탈률 위젯은 확정 이탈과 판정 대기를 분리한�
 test("사용자 조사 대시보드는 user.id와 attempt ID를 함께 표시한다", () => {
   const dashboard = dashboards.find(({ title }) => title === "PoC - 사용자 플로우 조사");
   const logWidget = dashboard.widgets.find(({ title }) => title === "최근 플로우 행동 로그");
+  assert.equal(logWidget.queries[0].conditions, "has:flow.event");
   assert.ok(logWidget.queries[0].fields.includes("user.id"));
   assert.ok(logWidget.queries[0].fields.includes("flow.attempt_id"));
 
