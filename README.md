@@ -37,8 +37,11 @@
 - [한글 UI, Replay, 가입 퍼널, 사용자 추적, JIT 개인정보 조회, 오류율, Web Vitals 구현 설계](docs/10-frontend-observability-design.md)
 - [프론트엔드 디버깅 기능·화면 주소·사용법](docs/11-frontend-debugging-guide.md)
 - [다른 React 프로젝트에 재현하는 파일별 Quick Guide](docs/12-frontend-observability-quick-guide.md)
+- [가입·송금·결제 도메인 플로우 실행 및 Sentry 조사 가이드](docs/13-domain-flow-observability.md)
 
 Sentry는 오류·Logs·Replay·Trace·성능의 진단 허브로 사용한다. 검색용 원본 `user.id`는 SDK·Relay에서 보존하고, 이름·이메일·전화번호·입력값 등 나머지 개인정보는 계속 제거한다. 정확한 가입 이탈률과 활성 사용자 대비 오류율은 망 내부 분석 서버에서 계산한 뒤 안전한 집계 snapshot만 Sentry Dashboard 7에 발행한다.
+
+가입·송금·결제 앱은 각각 독립된 URL 플로우와 Sentry 프로젝트를 사용한다. 기존 `test-app`의 Sentry 전송은 차단되어 있으며, 세 도메인 앱만 신규 이벤트를 전송한다.
 
 ## 최종 결론
 
