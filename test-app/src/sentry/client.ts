@@ -26,9 +26,11 @@ const collectionPolicy = buildCollectionPolicy(
 );
 const explicitlyDisabled = import.meta.env.VITE_SENTRY_ENABLED?.trim().toLowerCase() === "false";
 const logsEnabled = import.meta.env.VITE_SENTRY_LOGS_ENABLED?.trim().toLowerCase() !== "false";
+// 신규 도메인 앱 세 개만 Sentry에 연결한다. 기존 종합 데모 앱은 화면 검증 용도로만 남긴다.
+const legacyTestAppIngestionDisabled = true;
 
 export const sentryRuntime = {
-  enabled: dsn.length > 0 && !explicitlyDisabled,
+  enabled: dsn.length > 0 && !explicitlyDisabled && !legacyTestAppIngestionDisabled,
   environment,
   release: import.meta.env.VITE_APP_RELEASE?.trim() || "frontend-poc@0.1.0",
   tracesSampleRate: collectionPolicy.tracesSampleRate,
