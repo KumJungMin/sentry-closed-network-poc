@@ -31,7 +31,7 @@ export function publishFlowFunnelSnapshot(summary: FlowFunnelSummary): void {
       attributes: {
         "snapshot.type": "domain_flow_funnel",
         service: summary.service,
-        "flow.name": summary.flowName,
+        "flow.slug": summary.flowName,
         "flow.version": summary.flowVersion,
         "flow.step": step.id,
         "flow.step_label": step.label,

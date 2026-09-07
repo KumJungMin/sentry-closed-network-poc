@@ -26,6 +26,8 @@
 pnpm analytics
 ```
 
+`pnpm analytics`는 정확 집계 API와 Sentry snapshot publisher를 함께 실행합니다. publisher는 60초마다 세 플로우를 다시 계산하므로, 마지막 사용자가 화면을 닫아 추가 이벤트가 없어도 유예 시간 경과 후 확정 이탈이 Sentry에 반영됩니다.
+
 ```bash
 pnpm dev:flows
 ```
@@ -34,6 +36,12 @@ pnpm dev:flows
 
 ```bash
 pnpm verify:flows
+```
+
+실행 중인 집계 값을 즉시 한 번 발행하려면 다음 명령을 사용합니다.
+
+```bash
+pnpm publish:flow-snapshots
 ```
 
 ## Sentry 대시보드
@@ -68,7 +76,7 @@ Sentry에서 다음 두 대시보드를 사용합니다.
 3. 한 번의 시도만 좁히려면 표에서 확인한 `flow.attempt_id` 조건도 추가합니다.
 4. `timestamp` 오름차순으로 정렬하면 URL 진입, 제출, 성공·거절·오류, 완료 순서를 재구성할 수 있습니다.
 
-Logs에는 `user.id`, `service`, `flow.name`, `flow.step`, `flow.event`, `flow.attempt_id`, `page.path`가 함께 저장됩니다. 원본 `user.id`는 검색을 위해 보존하지만 이메일, 전화번호, 이름, 입력값, URL query와 fragment는 제거합니다.
+Logs에는 `user.id`, `service`, `flow.slug`, `flow.step`, `flow.event`, `flow.attempt_id`, `page.path`가 함께 저장됩니다. `flow.slug`는 서버의 개인정보 필드명 `name` 규칙과 충돌하지 않는 플로우 식별자입니다. 원본 `user.id`는 검색을 위해 보존하지만 이메일, 전화번호, 이름, 입력값, URL query와 fragment는 제거합니다.
 
 ### 오류와 Replay, 원본 소스
 

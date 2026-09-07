@@ -43,11 +43,16 @@ test("사용자 조사 대시보드는 user.id와 attempt ID를 함께 표시한
   const logWidget = dashboard.widgets.find(({ title }) => title === "최근 플로우 행동 로그");
   assert.equal(logWidget.queries[0].conditions, "has:flow.event");
   assert.ok(logWidget.queries[0].fields.includes("user.id"));
+  assert.ok(logWidget.queries[0].fields.includes("flow.slug"));
   assert.ok(logWidget.queries[0].fields.includes("flow.attempt_id"));
 
   const errorWidget = dashboard.widgets.find(({ title }) => title === "사용자와 Replay가 연결된 오류");
   assert.ok(errorWidget.queries[0].fields.includes("replayId"));
   assert.ok(errorWidget.queries[0].fields.includes("error_code"));
+});
+
+test("개인정보 필드명과 충돌하는 flow.name을 사용하지 않는다", () => {
+  assert.equal(JSON.stringify(dashboards).includes("flow.name"), false);
 });
 
 test("고카디널리티 attempt ID는 집계 groupBy에 사용하지 않는다", () => {

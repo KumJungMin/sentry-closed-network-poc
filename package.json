@@ -4,14 +4,16 @@
   "version": "0.2.0",
   "packageManager": "pnpm@10.14.0",
   "scripts": {
-    "analytics": "node internal-observability/server.mjs",
+    "analytics": "node scripts/run-flow-observability.mjs",
     "build": "pnpm -r --if-present build",
     "dev:flows": "pnpm --parallel --filter @poc/membership-web --filter @poc/remittance-web --filter @poc/payment-web dev",
+    "publish:flow-snapshots": "node scripts/publish-domain-flow-snapshots.mjs",
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck",
     "verify:flows": "pnpm test && pnpm typecheck && node --test internal-observability/*.test.mjs && node --test scripts/domain-flow-dashboards.test.mjs"
   },
   "devDependencies": {
-    "@sentry/cli": "3.7.0"
+    "@sentry/cli": "3.7.0",
+    "@sentry/node": "10.72.0"
   }
 }

@@ -52,7 +52,7 @@ export function captureFlowException(input: CaptureFlowExceptionInput): string {
     scope.setUser({ id: input.userId });
     scope.setTags({
       service: event.service,
-      "flow.name": event.flowName,
+      "flow.slug": event.flowName,
       "flow.step": event.step,
       "flow.attempt_id": event.attemptId,
       error_code: input.errorCode,
@@ -75,7 +75,7 @@ export function createSentryFlowEventSink(): (input: FlowEventInput) => void {
 function toLogAttributes(event: FlowEvent): Record<string, string | number> {
   return {
     service: event.service,
-    "flow.name": event.flowName,
+    "flow.slug": event.flowName,
     "flow.version": event.flowVersion,
     "flow.step": event.step,
     "flow.event": event.event,

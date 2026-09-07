@@ -28,7 +28,7 @@ export async function sendFlowAnalyticsEvent(
   } catch (error) {
     Sentry.logger.warn("internal_flow_analytics_failed", {
       service: event.service,
-      "flow.name": event.flowName,
+      "flow.slug": event.flowName,
       "flow.step": event.step,
       "flow.event": event.event,
       "flow.attempt_id": event.attemptId,
@@ -71,7 +71,7 @@ export function createObservedFlowEventSink(
       publishFlowFunnelSnapshot(await fetchFlowFunnelSummary(input.flowName, options));
     } catch (error) {
       Sentry.logger.warn("internal_flow_snapshot_failed", {
-        "flow.name": input.flowName,
+        "flow.slug": input.flowName,
         "flow.step": input.step,
         "flow.attempt_id": input.attemptId,
       });

@@ -36,7 +36,7 @@ describe("정확한 플로우 집계 snapshot", () => {
     expect(sentryMocks.startInactiveSpan).toHaveBeenCalledWith(expect.objectContaining({
       op: "poc.flow.snapshot",
       attributes: expect.objectContaining({
-        "flow.name": "payment",
+        "flow.slug": "payment",
         "flow.step": "order",
         "flow.reached": 3,
         "flow.drop_off": 1,

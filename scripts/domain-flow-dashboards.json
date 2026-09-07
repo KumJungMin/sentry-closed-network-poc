@@ -81,7 +81,7 @@
         "widgetType": "spans",
         "interval": "5m",
         "limit": 20,
-        "queries": [{"name": "", "conditions": "span.op:poc.flow.snapshot snapshot.type:domain_flow_funnel", "fields": ["timestamp", "service", "flow.name", "flow.step_label", "tags[flow.total_attempts,number]", "tags[flow.completed_attempts,number]", "tags[flow.reached,number]", "tags[flow.drop_off,number]", "tags[flow.pending_drop_off,number]", "tags[flow.drop_off_rate,number]"], "aggregates": [], "columns": ["timestamp", "service", "flow.name", "flow.step_label", "tags[flow.total_attempts,number]", "tags[flow.completed_attempts,number]", "tags[flow.reached,number]", "tags[flow.drop_off,number]", "tags[flow.pending_drop_off,number]", "tags[flow.drop_off_rate,number]"], "fieldAliases": ["집계 시각", "서비스", "플로우", "단계", "전체 시도", "완료", "도달", "확정 이탈", "판정 대기", "이탈률 (%)"], "orderby": "-timestamp"}],
+        "queries": [{"name": "", "conditions": "span.op:poc.flow.snapshot snapshot.type:domain_flow_funnel", "fields": ["timestamp", "service", "flow.slug", "flow.step_label", "tags[flow.total_attempts,number]", "tags[flow.completed_attempts,number]", "tags[flow.reached,number]", "tags[flow.drop_off,number]", "tags[flow.pending_drop_off,number]", "tags[flow.drop_off_rate,number]"], "aggregates": [], "columns": ["timestamp", "service", "flow.slug", "flow.step_label", "tags[flow.total_attempts,number]", "tags[flow.completed_attempts,number]", "tags[flow.reached,number]", "tags[flow.drop_off,number]", "tags[flow.pending_drop_off,number]", "tags[flow.drop_off_rate,number]"], "fieldAliases": ["집계 시각", "서비스", "플로우", "단계", "전체 시도", "완료", "도달", "확정 이탈", "판정 대기", "이탈률 (%)"], "orderby": "-timestamp"}],
         "layout": {"x": 0, "y": 6, "w": 6, "h": 4, "minH": 3}
       }
     ]
@@ -99,7 +99,7 @@
         "widgetType": "logs",
         "interval": "5m",
         "limit": 20,
-        "queries": [{"name": "", "conditions": "has:flow.event", "fields": ["timestamp", "user.id", "service", "flow.name", "flow.step", "flow.event", "flow.attempt_id", "page.path"], "aggregates": [], "columns": ["timestamp", "user.id", "service", "flow.name", "flow.step", "flow.event", "flow.attempt_id", "page.path"], "fieldAliases": ["시각", "사용자 ID", "서비스", "플로우", "단계", "행동", "시도 ID", "URL"], "orderby": "-timestamp"}],
+        "queries": [{"name": "", "conditions": "has:flow.event", "fields": ["timestamp", "user.id", "service", "flow.slug", "flow.step", "flow.event", "flow.attempt_id", "page.path"], "aggregates": [], "columns": ["timestamp", "user.id", "service", "flow.slug", "flow.step", "flow.event", "flow.attempt_id", "page.path"], "fieldAliases": ["시각", "사용자 ID", "서비스", "플로우", "단계", "행동", "시도 ID", "URL"], "orderby": "-timestamp"}],
         "layout": {"x": 0, "y": 0, "w": 6, "h": 4, "minH": 3}
       },
       {
@@ -126,7 +126,7 @@
         "widgetType": "error-events",
         "interval": "1h",
         "limit": 20,
-        "queries": [{"name": "", "conditions": "has:user has:replayId", "fields": ["id", "timestamp", "title", "user", "flow.name", "flow.step", "flow.attempt_id", "error_code", "replayId"], "aggregates": [], "columns": ["id", "timestamp", "title", "user", "flow.name", "flow.step", "flow.attempt_id", "error_code", "replayId"], "fieldAliases": ["이벤트 ID", "시각", "오류", "사용자", "플로우", "단계", "시도 ID", "오류 코드", "Replay ID"], "orderby": "-timestamp"}],
+        "queries": [{"name": "", "conditions": "has:user has:replayId", "fields": ["id", "timestamp", "title", "user", "flow.slug", "flow.step", "flow.attempt_id", "error_code", "replayId"], "aggregates": [], "columns": ["id", "timestamp", "title", "user", "flow.slug", "flow.step", "flow.attempt_id", "error_code", "replayId"], "fieldAliases": ["이벤트 ID", "시각", "오류", "사용자", "플로우", "단계", "시도 ID", "오류 코드", "Replay ID"], "orderby": "-timestamp"}],
         "layout": {"x": 0, "y": 6, "w": 6, "h": 3, "minH": 2}
       }
     ]
