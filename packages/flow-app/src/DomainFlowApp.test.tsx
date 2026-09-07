@@ -57,7 +57,7 @@ describe("공통 도메인 플로우 화면", () => {
     expect(screen.getByText("단계 3 / 5")).toBeTruthy();
   });
 
-  it("예상 업무 거절은 현재 화면에 남기고 실패 이벤트를 기록한다", async () => {
+  it("예상된 정책상 거절은 현재 화면에 남기고 실패 이벤트를 기록한다", async () => {
     const user = userEvent.setup();
     const onFlowEvent = vi.fn();
     render(
@@ -83,7 +83,7 @@ describe("공통 도메인 플로우 화면", () => {
     }));
   });
 
-  it("기술 실패는 원본 오류와 플로우 문맥을 exception sink로 전달한다", async () => {
+  it("시스템 실패는 원본 오류와 플로우 문맥을 exception sink로 전달한다", async () => {
     const user = userEvent.setup();
     const error = Object.assign(new Error("timeout"), { code: "MEMBERSHIP_TIMEOUT" });
     const onFlowException = vi.fn();
@@ -101,7 +101,7 @@ describe("공통 도메인 플로우 화면", () => {
     await user.click(screen.getByRole("button", { name: "다음" }));
     expect(await screen.findByRole("alert")).toHaveProperty(
       "textContent",
-      "일시적인 기술 오류가 발생했습니다. 다시 시도해 주세요.",
+      "일시적인 시스템 오류가 발생했습니다. 다시 시도해 주세요.",
     );
     expect(onFlowException).toHaveBeenCalledWith(expect.objectContaining({
       error,

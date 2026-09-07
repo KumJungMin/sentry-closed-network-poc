@@ -90,19 +90,19 @@ export function useSignupFunnel(currentStep: SignupStepId | null): SignupFunnelV
     recordedPageViewKeyRef.current = pageViewKey;
     setIsPageViewReady(false);
     setPageViewError(null);
-    setStatus("현재 화면 pageView 기록 중…");
+    setStatus("현재 화면 진입 기록 중…");
 
     void recordFunnelEvent(session.attemptId, currentStep, "page_view")
       .then(async () => {
         if (recordedPageViewKeyRef.current !== pageViewKey) return;
         setIsPageViewReady(true);
-        setStatus("현재 화면 pageView 기록됨");
+        setStatus("현재 화면 진입 기록 완료");
         await refreshSummary();
       })
       .catch((error: unknown) => {
         if (recordedPageViewKeyRef.current !== pageViewKey) return;
         recordedPageViewKeyRef.current = null;
-        const message = error instanceof Error ? error.message : "pageView 기록 실패";
+        const message = error instanceof Error ? error.message : "화면 진입 기록 실패";
         setPageViewError(message);
         setStatus(message);
       });

@@ -19,7 +19,7 @@ const stepContent = {
   },
   account: {
     title: "로그인에 사용할 계정을 만듭니다",
-    description: "PoC이므로 이메일 형식과 필수 입력만 검증합니다.",
+    description: "PoC용 화면이라 이메일 형식과 필수 입력만 검증합니다.",
     field: {
       name: "email",
       label: "이메일",
@@ -41,7 +41,7 @@ const stepContent = {
   },
   identity: {
     title: "고객 확인 정보를 입력해 주세요",
-    description: "OK은 성공, DECLINE은 업무 거절, TIMEOUT은 기술 오류를 재현합니다.",
+    description: "OK은 성공, DECLINE은 정책상 거절, TIMEOUT은 시스템 오류를 재현합니다.",
     field: {
       name: "identityCode",
       label: "테스트 확인 코드",
@@ -52,7 +52,7 @@ const stepContent = {
   },
   result: {
     title: "가입이 완료되었습니다",
-    description: "회원 생성 성공을 기준으로 플로우 완료 이벤트가 기록됩니다.",
+    description: "회원 생성 성공을 기준으로 절차 완료 이벤트가 기록됩니다.",
   },
 } satisfies DomainFlowAppProps["stepContent"];
 
@@ -60,7 +60,7 @@ export function App() {
   return (
     <DomainFlowApp
       accentColor="#2563eb"
-      appTitle="가입 프로세스"
+      appTitle="가입 절차"
       flowName="membership"
       onFlowEvent={flowEventSink}
       onFlowException={captureFlowException}

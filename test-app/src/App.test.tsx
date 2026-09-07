@@ -113,7 +113,7 @@ describe("App", () => {
   it("기능 URL로 직접 진입하면 해당 화면만 렌더링한다", () => {
     renderApp("/custom-data");
 
-    expect(screen.getByRole("heading", { name: "커스텀 업무 데이터 수집" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "업무 데이터 직접 수집" })).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "수집 기능 테스트" })).toBeNull();
   });
 

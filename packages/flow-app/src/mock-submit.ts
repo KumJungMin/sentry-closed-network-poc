@@ -55,7 +55,7 @@ export function createMockFlowSubmitter(
     const fallbackCode = `${context.flowName.toUpperCase()}_SUBMISSION_FAILED`;
     throw new FlowTechnicalError(
       typeof payload.errorCode === "string" ? payload.errorCode : fallbackCode,
-      `플로우 제출 API가 HTTP ${response.status}로 실패했습니다.`,
+      `현재 단계 제출 API가 HTTP ${response.status}로 실패했습니다.`,
     );
   };
 }

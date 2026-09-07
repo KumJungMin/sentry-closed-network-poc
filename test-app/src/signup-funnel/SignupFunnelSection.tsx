@@ -38,10 +38,10 @@ export function SignupFunnelSection({ currentStep = undefined }: SignupFunnelSec
 
           {selectedStep === null ? (
             <div className="funnel-screen">
-              <strong>새 합성 가입 시도</strong>
-              <p>각 가입 단계는 고유 URL을 사용하며, 경로 진입이 자동으로 pageView로 기록됩니다.</p>
+              <strong>새 가입 시도 만들기</strong>
+              <p>각 가입 단계는 고유 URL을 사용하며, 화면 진입이 자동으로 pageView로 기록됩니다.</p>
               <button type="button" disabled={funnel.isSubmitting} onClick={funnel.start}>
-                가입 플로우 시작
+                가입 시작
               </button>
             </div>
           ) : (
@@ -52,7 +52,7 @@ export function SignupFunnelSection({ currentStep = undefined }: SignupFunnelSec
               <p>{selectedStep.description}</p>
               {funnel.pageViewError && (
                 <button type="button" disabled={funnel.isSubmitting} onClick={funnel.retryPageView}>
-                  pageView 다시 기록
+                  화면 진입 다시 기록
                 </button>
               )}
               <div className="funnel-actions">
@@ -82,7 +82,7 @@ export function SignupFunnelSection({ currentStep = undefined }: SignupFunnelSec
             <small>완료 {funnel.summary?.completedAttempts ?? 0}</small>
           </div>
           <p className="funnel-summary__policy">
-            다음 pageView가 없으면 {gracePeriodLabel} 확정 이탈로 집계합니다.
+            다음 pageView가 없으면 {gracePeriodLabel} 이탈 확정으로 집계합니다.
           </p>
           <ol>
             {(funnel.summary?.steps ?? signupSteps.map((step) => ({
@@ -95,8 +95,8 @@ export function SignupFunnelSection({ currentStep = undefined }: SignupFunnelSec
             }))).map((step) => (
               <li key={step.id}>
                 <div><strong>{step.label}</strong><span>도달 {step.reached}명</span></div>
-                <div><span>확정 이탈 {step.dropOff}명</span><strong>{step.dropOffRate}%</strong></div>
-                <div><span>판정 대기</span><strong>{step.pendingDropOff}명</strong></div>
+                <div><span>이탈 확정 {step.dropOff}명</span><strong>{step.dropOffRate}%</strong></div>
+                <div><span>이탈 판단 대기</span><strong>{step.pendingDropOff}명</strong></div>
               </li>
             ))}
           </ol>

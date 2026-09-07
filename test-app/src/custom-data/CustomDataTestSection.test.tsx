@@ -50,20 +50,20 @@ describe("CustomDataTestSection", () => {
       />,
     );
 
-    await user.selectOptions(screen.getByLabelText("Channel"), "panda");
-    await user.selectOptions(screen.getByLabelText("Service"), "payment");
-    await user.selectOptions(screen.getByLabelText("Currency"), "USD");
-    await user.clear(screen.getByLabelText("Error code"));
-    await user.type(screen.getByLabelText("Error code"), "PAYMENT_AUTH_FAILED");
-    await user.clear(screen.getByLabelText("Page"));
-    await user.type(screen.getByLabelText("Page"), "payment-confirm");
-    await user.selectOptions(screen.getByLabelText("Process step"), "payment-authorization");
-    await user.selectOptions(screen.getByLabelText("Authentication"), "biometric");
-    await user.selectOptions(screen.getByLabelText("API status"), "timeout");
-    await user.selectOptions(screen.getByLabelText("Business state"), "awaiting-retry");
+    await user.selectOptions(screen.getByLabelText("채널"), "panda");
+    await user.selectOptions(screen.getByLabelText("서비스"), "payment");
+    await user.selectOptions(screen.getByLabelText("통화"), "USD");
+    await user.clear(screen.getByLabelText("오류 코드"));
+    await user.type(screen.getByLabelText("오류 코드"), "PAYMENT_AUTH_FAILED");
+    await user.clear(screen.getByLabelText("화면"));
+    await user.type(screen.getByLabelText("화면"), "payment-confirm");
+    await user.selectOptions(screen.getByLabelText("처리 단계"), "payment-authorization");
+    await user.selectOptions(screen.getByLabelText("인증 방식"), "biometric");
+    await user.selectOptions(screen.getByLabelText("API 상태"), "timeout");
+    await user.selectOptions(screen.getByLabelText("업무 상태"), "awaiting-retry");
     await user.click(screen.getByRole("button", { name: "업무 오류 전송" }));
 
-    expect(await screen.findByText("금융 WebView 커스텀 이벤트를 전송했습니다.")).toBeTruthy();
+    expect(await screen.findByText("금융 WebView 사용자 지정 이벤트를 전송했습니다.")).toBeTruthy();
     expect(scopeMocks.setTags).toHaveBeenCalledWith(
       expect.objectContaining({
         channel: "panda",
@@ -98,8 +98,8 @@ describe("CustomDataTestSection", () => {
       />,
     );
 
-    await user.clear(screen.getByLabelText("Error code"));
-    await user.type(screen.getByLabelText("Error code"), "invalid code");
+    await user.clear(screen.getByLabelText("오류 코드"));
+    await user.type(screen.getByLabelText("오류 코드"), "invalid code");
     await user.click(screen.getByRole("button", { name: "업무 오류 전송" }));
 
     expect((await screen.findByRole("alert")).textContent).toContain("오류 코드는");

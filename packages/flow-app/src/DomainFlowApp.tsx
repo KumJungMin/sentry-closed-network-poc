@@ -112,7 +112,7 @@ function FlowStepPage(_props: FlowStepPageProps) {
 
         {vm.isLastStep ? (
           <div className="result-panel">
-            <strong>플로우가 정상적으로 완료되었습니다.</strong>
+            <strong>절차가 정상적으로 완료되었습니다.</strong>
             <p>새 시도를 시작하면 별도의 attempt ID로 기록됩니다.</p>
             <button className="primary-button" onClick={vm.handleRestart} type="button">새로 시작</button>
           </div>
@@ -138,7 +138,7 @@ function FlowStepPage(_props: FlowStepPageProps) {
               onClick={vm.handleCancel}
               type="button"
             >
-              이 플로우 취소
+              이 절차 취소
             </button>
           </form>
         )}
@@ -162,7 +162,7 @@ export function DomainFlowApp(_props: DomainFlowAppProps) {
       <RoutesComponent>
         {definition.steps.map((step) => {
           const content = _props.stepContent[step.id];
-          if (!content) throw new Error(`${_props.flowName}.${step.id} 화면 내용이 없습니다.`);
+          if (!content) throw new Error(`${_props.flowName}.${step.id} 화면 구성이 없습니다.`);
           return (
             <Route
               element={<FlowStepPage {..._props} content={content} step={step} />}

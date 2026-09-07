@@ -117,7 +117,7 @@ Vue를 선호한다면 Phase 3 전에 Vue 3 + TypeScript + Vite로 변경할 수
 | 2 | `vendor/self-hosted` 또는 별도 고정 소스, 설치 문서, Docker 이미지·볼륨 | 20~40GB 우선 예산 |
 | 3 | `test-app/`, `node_modules`, 빌드 결과 | 0.3~1GB |
 | 4 | SDK/Source map 문서와 검증 기록 | 10~100MB + 이벤트 데이터 |
-| 5 | 커스텀 데이터 코드와 문서 | 10MB 미만 + 이벤트 데이터 |
+| 5 | 사용자 지정 데이터 코드와 문서 | 10MB 미만 + 이벤트 데이터 |
 | 6 | 대시보드 문서와 화면 증적 | 10~100MB |
 | 7 | 필터링 코드와 가짜 데이터 검증 증적 | 10~100MB + 이벤트 데이터 |
 | 8 | 오프라인 테스트 기록, 필요 시 이미지 아카이브 | 아카이브 미보관 시 100MB 미만, 보관 시 20~40GB 추가 가능 |
@@ -143,7 +143,7 @@ Vue를 선호한다면 Phase 3 전에 Vue 3 + TypeScript + Vite로 변경할 수
 
 ### Phase 3~9
 
-- React 또는 Vue 테스트 앱을 만든 뒤 기본 이벤트, 커스텀 데이터, 대시보드, 개인정보 필터링 순서로 검증합니다.
+- React 또는 Vue 테스트 앱을 만든 뒤 기본 이벤트, 사용자 지정 데이터, 대시보드, 개인정보 필터링 순서로 검증합니다.
 - 마지막에 네트워크 차단 상태의 내부 성공/외부 실패를 증거와 함께 기록합니다.
 - PoC 결과를 회사 적용 시 프론트엔드·인프라·보안 담당 업무로 분리해 정리합니다.
 
@@ -173,4 +173,3 @@ Vue를 선호한다면 Phase 3 전에 Vue 3 + TypeScript + Vite로 변경할 수
 - [Self-hosted 26.8.0 릴리스](https://github.com/getsentry/self-hosted/releases/tag/26.8.0)
 - [26.8.0 최소 요구사항 스크립트](https://github.com/getsentry/self-hosted/blob/26.8.0/install/_min-requirements.sh)
 - [26.8.0 Docker Compose 정의](https://github.com/getsentry/self-hosted/blob/26.8.0/docker-compose.yml)
-

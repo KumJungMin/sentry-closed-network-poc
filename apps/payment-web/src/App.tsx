@@ -31,7 +31,7 @@ const stepContent = {
   },
   authenticate: {
     title: "결제를 인증해 주세요",
-    description: "OK은 성공, DECLINE은 업무 거절, TIMEOUT은 기술 오류를 재현합니다.",
+    description: "OK은 성공, DECLINE은 정책상 거절, TIMEOUT은 시스템 오류를 재현합니다.",
     field: {
       name: "authCode",
       label: "테스트 인증 코드",
@@ -50,7 +50,7 @@ export function App() {
   return (
     <DomainFlowApp
       accentColor="#7c3aed"
-      appTitle="결제 프로세스"
+      appTitle="결제 절차"
       flowName="payment"
       onFlowEvent={flowEventSink}
       onFlowException={captureFlowException}

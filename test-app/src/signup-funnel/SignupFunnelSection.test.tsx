@@ -57,8 +57,8 @@ describe("SignupFunnelSection", () => {
 
     expect(await screen.findByText("망 내부 집계 서버 연결됨")).toBeTruthy();
     expect(screen.getByText("전체 가입 시도").parentElement?.textContent).toContain("4");
-    expect(screen.getByText("다음 pageView가 없으면 30분 후 확정 이탈로 집계합니다.")).toBeTruthy();
-    expect(screen.getAllByText("판정 대기")).toHaveLength(4);
+    expect(screen.getByText("다음 pageView가 없으면 30분 후 이탈 확정으로 집계합니다.")).toBeTruthy();
+    expect(screen.getAllByText("이탈 판단 대기")).toHaveLength(4);
   });
 
   it("유예시간이 0이면 즉시 이탈 확정 정책을 표시한다", async () => {
@@ -66,14 +66,14 @@ describe("SignupFunnelSection", () => {
 
     renderFunnel();
 
-    expect(await screen.findByText("다음 pageView가 없으면 즉시 확정 이탈로 집계합니다.")).toBeTruthy();
+    expect(await screen.findByText("다음 pageView가 없으면 즉시 이탈 확정으로 집계합니다.")).toBeTruthy();
   });
 
-  it("시작하면 첫 URL로 이동하고 경로 진입을 pageView로 자동 기록한다", async () => {
+  it("시작하면 첫 URL로 이동하고 화면 진입을 pageView로 자동 기록한다", async () => {
     const user = userEvent.setup();
     renderFunnel();
 
-    await user.click(screen.getByRole("button", { name: "가입 플로우 시작" }));
+    await user.click(screen.getByRole("button", { name: "가입 시작" }));
 
     await waitFor(() => expect(screen.getByLabelText("현재 경로").textContent).toBe("/signup-funnel/terms"));
     await waitFor(() => expect(apiMocks.recordFunnelEvent).toHaveBeenCalledWith(
@@ -86,8 +86,8 @@ describe("SignupFunnelSection", () => {
   it("다음 버튼은 advanced를 기록하고 다음 URL의 pageView까지 기록한다", async () => {
     const user = userEvent.setup();
     renderFunnel();
-    await user.click(screen.getByRole("button", { name: "가입 플로우 시작" }));
-    await screen.findByText("현재 화면 pageView 기록됨");
+    await user.click(screen.getByRole("button", { name: "가입 시작" }));
+    await screen.findByText("현재 화면 진입 기록 완료");
 
     await user.click(screen.getByRole("button", { name: "다음 화면" }));
 
@@ -152,19 +152,19 @@ describe("SignupFunnelSection", () => {
     const user = userEvent.setup();
     renderFunnel("/signup-funnel/terms");
 
-    const retry = await screen.findByRole("button", { name: "pageView 다시 기록" });
+    const retry = await screen.findByRole("button", { name: "화면 진입 다시 기록" });
     expect(screen.getByRole("button", { name: "다음 화면" }).hasAttribute("disabled")).toBe(true);
 
     await user.click(retry);
 
-    await screen.findByText("현재 화면 pageView 기록됨");
+    await screen.findByText("현재 화면 진입 기록 완료");
     expect(screen.getByRole("button", { name: "다음 화면" }).hasAttribute("disabled")).toBe(false);
   });
 
   it("명시 이탈을 기록하고 가입 시도를 종료한다", async () => {
     const user = userEvent.setup();
     renderFunnel("/signup-funnel/terms");
-    await screen.findByText("현재 화면 pageView 기록됨");
+    await screen.findByText("현재 화면 진입 기록 완료");
 
     await user.click(screen.getByRole("button", { name: "여기서 이탈" }));
 
@@ -180,18 +180,18 @@ describe("SignupFunnelSection", () => {
     const user = userEvent.setup();
     renderFunnel();
 
-    await user.click(screen.getByRole("button", { name: "가입 플로우 시작" }));
+    await user.click(screen.getByRole("button", { name: "가입 시작" }));
     for (const expectedPath of [
       "/signup-funnel/account",
       "/signup-funnel/phone",
       "/signup-funnel/cdd",
     ]) {
-      await screen.findByText("현재 화면 pageView 기록됨");
+      await screen.findByText("현재 화면 진입 기록 완료");
       await user.click(screen.getByRole("button", { name: "다음 화면" }));
       await waitFor(() => expect(screen.getByLabelText("현재 경로").textContent).toBe(expectedPath));
     }
 
-    await screen.findByText("현재 화면 pageView 기록됨");
+    await screen.findByText("현재 화면 진입 기록 완료");
     await user.click(screen.getByRole("button", { name: "가입 완료" }));
 
     await waitFor(() => expect(apiMocks.recordFunnelEvent).toHaveBeenCalledWith(

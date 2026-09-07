@@ -1,4 +1,4 @@
-# Phase 5: 금융 WebView 커스텀 데이터 수집
+# Phase 5: 금융 WebView 사용자 지정 데이터 수집
 
 ## 목표
 
@@ -13,7 +13,7 @@
 
 ## 화면과 동작
 
-기존 7개 실험은 유지하고 `커스텀 업무 데이터 수집` 섹션을 추가했다. 다음 값을 선택한 뒤 하나의 고정된 업무 오류를 전송할 수 있다.
+기존 7개 실험은 유지하고 `업무 데이터 직접 수집` 섹션을 추가했다. 다음 값을 선택한 뒤 하나의 고정된 업무 오류를 전송할 수 있다.
 
 - channel: `hana-ez`, `bcel`, `panda`
 - service: `remittance`, `payment`, `membership`
@@ -107,7 +107,7 @@ Self-hosted Sentry의 서버 측 데이터 정제 규칙은 다음 Context/Bread
 
 ### 성공
 
-- 금융 WebView 커스텀 이벤트 입력 UI 추가
+- 금융 WebView 사용자 지정 이벤트 입력 UI 추가
 - 검색용 Tag 7개 전송 및 Events API 검색 성공
 - Context에 정제된 상세 상태 저장
 - 6단계 업무 Breadcrumb 순서 검증

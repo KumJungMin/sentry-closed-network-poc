@@ -18,7 +18,7 @@
 | 테스트 앱 기능 | 주소 |
 | --- | --- |
 | 기본 이벤트 수집 | `http://127.0.0.1:5173/collection` |
-| 커스텀 Tag·Context | `http://127.0.0.1:5173/custom-data` |
+| 사용자 지정 Tag·Context | `http://127.0.0.1:5173/custom-data` |
 | 가입 퍼널 | `http://127.0.0.1:5173/signup-funnel` |
 | 구조화 로그 | `http://127.0.0.1:5173/logs` |
 | 서비스별 오류 | `http://127.0.0.1:5173/service-errors` |
@@ -46,8 +46,8 @@
 | Dashboard 4 일간 | `http://127.0.0.1:9000/organizations/sentry/dashboard/4/` | 최근 24시간 |
 | Dashboard 5 주간 | `http://127.0.0.1:9000/organizations/sentry/dashboard/5/` | 최근 7일 |
 | Dashboard 6 월간 | `http://127.0.0.1:9000/organizations/sentry/dashboard/6/` | 최근 30일 |
-| Dashboard 7 퍼널·사용자 지표 | `http://127.0.0.1:9000/organizations/sentry/dashboard/7/` | pageView 이탈률·대기·활성/영향 사용자 정확 집계 |
-| Dashboard 8 로그·Replay·개인정보 | `http://127.0.0.1:9000/organizations/sentry/dashboard/8/` | 실시간 Logs·Replay 연결 오류·가명 행동·JIT 상태 |
+| Dashboard 7 퍼널·사용자 지표 | `http://127.0.0.1:9000/organizations/sentry/dashboard/7/` | pageView 이탈률·대기·활성 사용자·영향을 받은 사용자 집계 |
+| Dashboard 8 로그·Replay·개인정보 | `http://127.0.0.1:9000/organizations/sentry/dashboard/8/` | 실시간 Logs·세션 리플레이가 있는 오류·가명 행동·JIT 상태 |
 | Source Maps | `http://127.0.0.1:9000/settings/sentry/projects/frontend-poc/source-maps/` | release와 artifact bundle 확인 |
 | Client Keys/DSN | `http://127.0.0.1:9000/settings/sentry/projects/frontend-poc/keys/` | DSN 복사, Git 저장 금지 |
 | Replay 설정 | `http://127.0.0.1:9000/settings/sentry/projects/frontend-poc/replays/` | 보존·접근 정책 확인 |
@@ -75,7 +75,7 @@
 
 ### 3. 가입 퍼널·화면별 이탈률
 
-테스트 앱의 **가입 퍼널과 화면별 이탈률**에서 플로우를 시작한다. `terms → account → phone → cdd`는 각각 고유 URL이며, 진입할 때 내부 분석 API에 `page_view`가 자동 저장된다. 다음 단계로 이동하지 않고 다른 기능 URL로 이동하거나 탭을 닫으면 기본 30분 유예시간 후 해당 화면의 확정 이탈로 집계된다. 새로고침은 같은 가입 시도와 화면의 도달 수를 중복 증가시키지 않는다.
+테스트 앱의 **가입 퍼널과 화면별 이탈률**에서 플로우를 시작한다. `terms → account → phone → cdd`는 각각 고유 URL이며, 진입할 때 내부 분석 API에 `page_view`가 자동 저장된다. 다음 단계로 이동하지 않고 다른 기능 URL로 이동하거나 탭을 닫으면 기본 30분 유예시간 후 해당 화면의 이탈 확정으로 집계된다. 새로고침은 같은 가입 시도와 화면의 도달 수를 중복 증가시키지 않는다.
 
 즉시 이탈 검수를 할 때는 분석 서버를 다음처럼 재시작한다.
 
@@ -83,9 +83,9 @@
 FUNNEL_DROPOFF_GRACE_PERIOD_MS=0 pnpm analytics
 ```
 
-`여기서 이탈`은 유예시간을 기다리지 않고 즉시 확정하는 보조 시나리오다. 화면에는 `확정 이탈`과 아직 유예시간 안에 있는 `판정 대기`가 따로 표시된다.
+`여기서 이탈`은 유예시간을 기다리지 않고 즉시 확정하는 보조 시나리오다. 화면에는 `이탈 확정`과 아직 유예시간 안에 있는 `이탈 판단 대기`가 따로 표시된다.
 
-정확한 수치는 **Dashboard 7 `PoC - 가입 퍼널 및 사용자 지표`**의 `가입 퍼널 최신 정확 집계`에서 확인한다. 내부 서버가 pageView를 기준으로 계산한 도달·확정 이탈·판정 대기·이탈률·전환율 snapshot을 표시하며, 가장 최근 집계 시각의 네 행이 현재 단계별 값이다.
+정확한 수치는 **Dashboard 7 `PoC - 가입 퍼널 및 사용자 지표`**의 `가입 퍼널 최신 집계`에서 확인한다. 내부 서버가 pageView를 기준으로 계산한 도달·이탈 확정·이탈 판단 대기·이탈률·전환율 snapshot을 표시하며, 가장 최근 집계 시각의 네 행이 현재 단계별 값이다.
 
 원인 span은 Explore > Traces에서 다음으로 찾는다.
 
@@ -97,7 +97,7 @@ Sentry에는 시도 ID나 개인정보 원문이 아니라 단계별 집계값�
 
 ### 4. 오류와 구조화 Logs
 
-테스트 앱의 **실시간 오류·커스텀 로그**에서 info/warn/error 시나리오를 보낸다. Logs에서 다음 고정 message를 검색한다.
+테스트 앱의 **실시간 오류·사용자 지정 로그**에서 info/warn/error 시나리오를 보낸다. Logs에서 다음 고정 message를 검색한다.
 
 ```text
 frontend_action_completed
@@ -144,19 +144,19 @@ Dashboard 8의 `최근 개인정보 JIT 상태`와 `개인정보 JIT 감사 이�
 
 ### 8. 일간·주간·월간 오류
 
-Dashboard 4~6 중 목적에 맞는 기간을 연다. 오류 건수만 보지 말고 영향받은 사용자, 오류 추이, 주요 오류를 함께 본다. 월 보고가 달력 월 기준이면 Dashboard 6의 절대 기간을 월 시작/종료로 바꾼다.
+Dashboard 4~6 중 목적에 맞는 기간을 연다. 오류 건수만 보지 말고 영향을 받은 사용자, 오류 추이, 주요 오류를 함께 본다. 월 보고가 달력 월 기준이면 Dashboard 6의 절대 기간을 월 시작/종료로 바꾼다.
 
 ### 9. 오류 순위와 사용자 대비 비율
 
 먼저 가명 ID를 연결한다. 테스트 앱의 **사용자 기준 오류 순위·이탈률**에서:
 
-1. **정상 사용자 모수 +1**로 payment 활성 사용자를 기록한다.
-2. **Sentry 오류 + 영향 사용자 기록**으로 실제 Sentry error와 내부 numerator를 함께 만든다.
-3. `영향 사용자/활성 사용자`와 가입 화면 이탈률을 확인한다.
+1. **활성 사용자 +1**로 payment 활성 사용자를 기록한다.
+2. **Sentry 오류와 영향을 받은 사용자 기록**으로 실제 Sentry error와 내부 numerator를 함께 만든다.
+3. `영향을 받은 사용자/활성 사용자`와 가입 화면 이탈률을 확인한다.
 
-`모수 없음`은 0%가 아니다. 운영에서는 버튼 대신 실제 인증/페이지 방문 backend 이벤트가 denominator를 공급해야 한다.
+`기준 사용자 수 없음`은 0%가 아니다. 운영에서는 버튼 대신 실제 인증/페이지 방문 backend 이벤트가 denominator를 공급해야 한다.
 
-같은 집계는 Dashboard 7의 `활성 사용자 대비 오류 최신 정확 집계`에서 확인한다. 최근 집계 시각 기준으로 오류 이벤트·영향 사용자·활성 사용자·영향률을 함께 비교한다.
+같은 집계는 Dashboard 7의 `활성 사용자 대비 오류 최신 집계`에서 확인한다. 최근 집계 시각 기준으로 오류 이벤트·영향을 받은 사용자·활성 사용자·영향률을 함께 비교한다.
 
 ### 10. 페이지별 Web Vitals와 Performance Score
 
@@ -177,7 +177,7 @@ Dashboard 3에서 전체 score와 페이지 table을 빠르게 확인한다. 이
 5. 같은 `user.id`의 Replay로 실제 행동 순서를 확인한다.
 6. 구조화 Logs에서 전후 상태를 검색한다.
 7. 개인정보가 꼭 필요한 경우에만 Sentry 밖 JIT 게이트를 연다.
-8. regression과 영향 사용자율을 보고 수정·rollback 우선순위를 정한다.
+8. regression과 영향을 받은 사용자 비율을 보고 수정·rollback 우선순위를 정한다.
 
 ## 추가 프론트엔드 디버깅 기능
 
@@ -194,7 +194,7 @@ Sentry 자체 Kafka, ClickHouse, PostgreSQL, Relay, 디스크는 Sentry 내부 �
 
 ## 운영 루틴
 
-- 매일: Dashboard 4, 새/미해결 Issue, error 영향 사용자율
+- 매일: Dashboard 4, 새/미해결 Issue, error 사용자 영향률
 - 매주: Dashboard 5, release/browser/service 분포, Replay 표본과 마스킹
 - 매월: Dashboard 6, 보존량·디스크, JIT/조직 감사 로그, HMAC·token 정책
 

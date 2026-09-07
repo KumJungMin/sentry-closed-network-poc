@@ -215,12 +215,12 @@ function DomainFlowFunnelCard({
                   </FunnelStepBar>
                   <FunnelStepMetrics>
                     <span>도달 {step.reached}</span>
-                    <span>진행 {step.progressed}</span>
-                    <span>이탈 {step.dropOff}</span>
+                    <span>다음 단계 이동 {step.progressed}</span>
+                    <span>이탈 확정 {step.dropOff}</span>
                     <strong>{step.dropOffRate.toFixed(1)}%</strong>
                   </FunnelStepMetrics>
                   {step.pendingDropOff > 0 && (
-                    <FunnelPending>판정 대기 {step.pendingDropOff}</FunnelPending>
+                    <FunnelPending>이탈 판단 대기 {step.pendingDropOff}</FunnelPending>
                   )}
                 </FunnelStep>
               ))}

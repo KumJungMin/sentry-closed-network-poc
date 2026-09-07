@@ -54,7 +54,7 @@ export function CustomDataTestSection({
       <div className="section-heading">
         <div>
           <p className="eyebrow">Phase 5 · Financial WebView</p>
-          <h2 id="custom-data-title">커스텀 업무 데이터 수집</h2>
+          <h2 id="custom-data-title">업무 데이터 직접 수집</h2>
         </div>
         <p>검색용 Tag와 상세 분석용 Context, 시간순 Breadcrumb를 한 이벤트에서 비교합니다.</p>
       </div>
@@ -73,29 +73,29 @@ export function CustomDataTestSection({
           </div>
 
           <div className="custom-data-fields">
-            <SelectField label="Channel" name="channel" value={form.channel} options={channelOptions} onChange={(value) => updateStringField("channel", value)} />
-            <SelectField label="Service" name="service" value={form.service} options={serviceOptions} onChange={(value) => updateStringField("service", value)} />
+            <SelectField label="채널" name="channel" value={form.channel} options={channelOptions} onChange={(value) => updateStringField("channel", value)} />
+            <SelectField label="서비스" name="service" value={form.service} options={serviceOptions} onChange={(value) => updateStringField("service", value)} />
             <label className="custom-data-field" htmlFor="partner">
-              <span>Partner</span>
+              <span>제휴사</span>
               <input id="partner" name="partner" value={form.partner} readOnly />
             </label>
-            <SelectField label="Currency" name="currency" value={form.currency} options={currencyOptions} onChange={(value) => updateStringField("currency", value)} />
+            <SelectField label="통화" name="currency" value={form.currency} options={currencyOptions} onChange={(value) => updateStringField("currency", value)} />
             <label className="custom-data-field" htmlFor="error-code">
-              <span>Error code</span>
+              <span>오류 코드</span>
               <input id="error-code" name="error-code" value={form.errorCode} onChange={(event) => updateField("errorCode", event.target.value)} />
             </label>
             <label className="custom-data-field" htmlFor="page">
-              <span>Page</span>
+              <span>화면</span>
               <input id="page" name="page" value={form.page} onChange={(event) => updateField("page", event.target.value)} />
             </label>
-            <SelectField label="Process step" name="process-step" value={form.processStep} options={processStepOptions} onChange={(value) => updateStringField("processStep", value)} />
-            <SelectField label="Authentication" name="authentication-method" value={form.authenticationMethod} options={authenticationMethodOptions} onChange={(value) => updateStringField("authenticationMethod", value)} />
+            <SelectField label="처리 단계" name="process-step" value={form.processStep} options={processStepOptions} onChange={(value) => updateStringField("processStep", value)} />
+            <SelectField label="인증 방식" name="authentication-method" value={form.authenticationMethod} options={authenticationMethodOptions} onChange={(value) => updateStringField("authenticationMethod", value)} />
             <label className="custom-data-field" htmlFor="retry-count">
-              <span>Retry count</span>
+              <span>재시도 횟수</span>
               <input id="retry-count" name="retry-count" type="number" min="0" max="5" value={form.retryCount} onChange={(event) => updateField("retryCount", event.target.valueAsNumber)} />
             </label>
-            <SelectField label="API status" name="api-status" value={form.apiStatus} options={apiStatusOptions} onChange={(value) => updateStringField("apiStatus", value)} />
-            <SelectField label="Business state" name="business-state" value={form.businessState} options={businessStateOptions} onChange={(value) => updateStringField("businessState", value)} />
+            <SelectField label="API 상태" name="api-status" value={form.apiStatus} options={apiStatusOptions} onChange={(value) => updateStringField("apiStatus", value)} />
+            <SelectField label="업무 상태" name="business-state" value={form.businessState} options={businessStateOptions} onChange={(value) => updateStringField("businessState", value)} />
           </div>
 
           {errors.length > 0 && (
@@ -117,7 +117,7 @@ export function CustomDataTestSection({
           </button>
         </form>
 
-        <aside className="custom-data-guide" aria-label="커스텀 데이터 분류 기준">
+        <aside className="custom-data-guide" aria-label="사용자 지정 데이터 분류 기준">
           <h3>어디에 저장하나?</h3>
           <dl>
             <div>

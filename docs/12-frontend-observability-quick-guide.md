@@ -135,9 +135,9 @@ Sentry.logger.error("frontend_payment_failed", {
 - 새로고침·재시도·뒤로가기 중복 처리
 - 하나의 가입 시도를 식별하는 `attempt_v1_*` 수명
 
-가입 단계마다 고유 URL을 만들고 경로 진입 시 내부 분석 API에 `page_view`, 전환 시 `advanced`, 명시 이탈 시 `abandoned`, 최종 성공 시 `completed`를 보낸다. 가입 시도 ID는 `sessionStorage`에 보관해 URL 이동과 새로고침에도 유지한다. 같은 동작을 Sentry `ui.funnel` span과 `page.path`로도 기록하되 공식 분모는 내부 분석계를 사용한다.
+가입 단계마다 고유 URL을 만들고 화면 진입 시 내부 분석 API에 `page_view`, 전환 시 `advanced`, 명시 이탈 시 `abandoned`, 최종 성공 시 `completed`를 보낸다. 가입 시도 ID는 `sessionStorage`에 보관해 URL 이동과 새로고침에도 유지한다. 같은 동작을 Sentry `ui.funnel` span과 `page.path`로도 기록하되 공식 분모는 내부 분석계를 사용한다.
 
-이탈은 unload 이벤트 수신 여부로 결정하지 않는다. 서버가 같은 가입 시도의 다음 단계 `page_view` 또는 완료를 기다리고, `FUNNEL_DROPOFF_GRACE_PERIOD_MS`가 지난 미전환 시도를 확정 이탈로 계산한다. 유예시간 안의 시도는 판정 대기로 분리하고, 같은 단계 새로고침은 도달 수에서 중복 제거한다.
+이탈은 unload 이벤트 수신 여부로 결정하지 않는다. 서버가 같은 가입 시도의 다음 단계 `page_view` 또는 완료를 기다리고, `FUNNEL_DROPOFF_GRACE_PERIOD_MS`가 지난 미전환 시도를 이탈 확정으로 계산한다. 유예시간 안의 시도는 이탈 판단 대기로 분리하고, 같은 단계 새로고침은 도달 수에서 중복 제거한다.
 
 ## 6. 서비스 분리
 

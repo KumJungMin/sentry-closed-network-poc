@@ -31,28 +31,28 @@ vi.mock("../sentry/logging", () => ({ emitStructuredLog: mocks.emitStructuredLog
 describe("NormalizedMetricsSection", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("오류와 이탈을 사용자 모수 대비 비율로 표시한다", async () => {
+  it("오류와 이탈을 활성 사용자 수 대비 비율로 표시한다", async () => {
     render(<NormalizedMetricsSection pseudonymousId="dbg_v1_R2Z4s9QmT6xK1pW8nB3cD5fH" />);
     expect(await screen.findByText("25%")).toBeTruthy();
     expect(screen.getByText("50%")).toBeTruthy();
-    expect(screen.getByText("확정 이탈 1명")).toBeTruthy();
+    expect(screen.getByText("이탈 확정 1명")).toBeTruthy();
   });
 
-  it("Sentry 오류와 내부 영향 사용자 이벤트를 함께 기록한다", async () => {
+  it("Sentry 오류와 내부 영향을 받은 사용자 이벤트를 함께 기록한다", async () => {
     const user = userEvent.setup();
     render(<NormalizedMetricsSection pseudonymousId="dbg_v1_R2Z4s9QmT6xK1pW8nB3cD5fH" />);
     await screen.findByText("25%");
-    await user.click(screen.getByRole("button", { name: "Sentry 오류 + 영향 사용자 기록" }));
+    await user.click(screen.getByRole("button", { name: "Sentry 오류와 영향을 받은 사용자 기록" }));
     expect(mocks.emitStructuredLog).toHaveBeenCalledWith("payment-failed");
     expect(mocks.recordUsageEvent).toHaveBeenCalledWith(expect.objectContaining({ kind: "error" }));
   });
 
-  it("모수 저장 실패를 상태 메시지로 표시한다", async () => {
+  it("활성 사용자 저장 실패를 상태 메시지로 표시한다", async () => {
     mocks.recordUsageEvent.mockRejectedValueOnce(new Error("집계 서버 저장 실패"));
     const user = userEvent.setup();
     render(<NormalizedMetricsSection pseudonymousId="dbg_v1_R2Z4s9QmT6xK1pW8nB3cD5fH" />);
     await screen.findByText("25%");
-    await user.click(screen.getByRole("button", { name: "정상 사용자 모수 +1" }));
+    await user.click(screen.getByRole("button", { name: "활성 사용자 +1" }));
     expect(await screen.findByText("집계 서버 저장 실패")).toBeTruthy();
   });
 });

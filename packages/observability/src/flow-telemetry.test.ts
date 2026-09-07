@@ -57,7 +57,7 @@ describe("플로우 Sentry 텔레메트리", () => {
     expect(sentryMocks.captureException).not.toHaveBeenCalled();
   });
 
-  it("기술 오류는 구조화 로그와 원본 Error Issue를 함께 만든다", () => {
+  it("시스템 오류는 구조화 로그와 원본 Error Issue를 함께 만든다", () => {
     const error = new Error("mock timeout");
     const eventId = captureFlowException({
       attemptId: "attempt_v1_payment-timeout",

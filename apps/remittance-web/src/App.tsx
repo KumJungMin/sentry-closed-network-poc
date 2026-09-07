@@ -9,10 +9,10 @@ const submitStep = createMockFlowSubmitter({
 const stepContent = {
   recipient: {
     title: "송금받을 사람을 선택해 주세요",
-    description: "실제 계좌번호 대신 테스트 수취인 별칭을 사용합니다.",
+    description: "실제 계좌번호 대신 테스트용 받는 분 별칭을 사용합니다.",
     field: {
       name: "recipientAlias",
-      label: "수취인 별칭",
+      label: "받는 분 별칭",
       type: "text",
       placeholder: "TEST-RECIPIENT",
       required: true,
@@ -31,11 +31,11 @@ const stepContent = {
   },
   review: {
     title: "송금 내용을 확인해 주세요",
-    description: "수취인과 금액을 확인한 뒤 인증 단계로 이동합니다.",
+    description: "받는 분과 금액을 확인한 뒤 인증 단계로 이동합니다.",
   },
   authenticate: {
     title: "송금을 인증해 주세요",
-    description: "OK은 성공, DECLINE은 업무 거절, TIMEOUT은 기술 오류를 재현합니다.",
+    description: "OK은 성공, DECLINE은 정책상 거절, TIMEOUT은 시스템 오류를 재현합니다.",
     field: {
       name: "authCode",
       label: "테스트 인증 코드",
@@ -54,7 +54,7 @@ export function App() {
   return (
     <DomainFlowApp
       accentColor="#087f5b"
-      appTitle="송금 프로세스"
+      appTitle="송금 절차"
       flowName="remittance"
       onFlowEvent={flowEventSink}
       onFlowException={captureFlowException}

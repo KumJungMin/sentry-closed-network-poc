@@ -40,7 +40,7 @@ const funnel = {
 describe("dashboardTelemetry", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("확정 이탈과 판정 대기를 서로 다른 gauge로 보낸다", () => {
+  it("이탈 확정과 이탈 판단 대기를 서로 다른 gauge로 보낸다", () => {
     publishFunnelDashboardSnapshot(funnel);
 
     expect(sentryMocks.gauge).toHaveBeenCalledWith(
@@ -56,7 +56,7 @@ describe("dashboardTelemetry", () => {
     expect(sentryMocks.spanEnd).toHaveBeenCalledTimes(1);
   });
 
-  it("활성 사용자 모수와 영향 사용자 비율을 dashboard gauge로 보낸다", () => {
+  it("활성 사용자 수와 영향을 받은 사용자 비율을 dashboard gauge로 보낸다", () => {
     publishNormalizedDashboardSnapshot({
       generatedAt: funnel.generatedAt,
       funnel,

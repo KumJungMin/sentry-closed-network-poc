@@ -45,7 +45,7 @@ test("모니터와 대시보드의 고정 UI만 번역하고 이벤트 데이터
   assert.equal(translateExact("4d ago", dictionary), "4d ago");
 });
 
-test("커스텀 Tag와 Context는 표시값만 번역하고 저장되지 않은 값은 보존한다", () => {
+test("사용자 지정 Tag와 Context는 표시값만 번역하고 저장되지 않은 값은 보존한다", () => {
   const expectedTranslations = {
     channel: "채널",
     service: "서비스",

@@ -15,7 +15,7 @@
         "layout": {"x": 0, "y": 0, "w": 2, "h": 1, "minH": 1}
       },
       {
-        "title": "영향받은 사용자",
+        "title": "영향을 받은 사용자",
         "displayType": "big_number",
         "widgetType": "error-events",
         "interval": "1h",
@@ -31,7 +31,7 @@
         "layout": {"x": 4, "y": 0, "w": 2, "h": 1, "minH": 1}
       },
       {
-        "title": "영향받은 사용자 오류 로그",
+        "title": "영향을 받은 사용자 오류 로그",
         "displayType": "table",
         "widgetType": "error-events",
         "interval": "1h",
@@ -66,13 +66,13 @@
         "layout": {"x": 0, "y": 6, "w": 3, "h": 2, "minH": 2}
       },
       {
-        "title": "릴리스별 오류",
+        "title": "배포 버전별 오류",
         "displayType": "line",
         "widgetType": "error-events",
         "interval": "1h",
         "limit": 5,
         "legendType": "breakdown",
-        "queries": [{"name": "", "conditions": "has:release", "fields": ["release", "count()"], "aggregates": ["count()"], "columns": ["release"], "fieldAliases": ["릴리스", "오류"], "orderby": "-count()"}],
+        "queries": [{"name": "", "conditions": "has:release", "fields": ["release", "count()"], "aggregates": ["count()"], "columns": ["release"], "fieldAliases": ["배포 버전", "오류"], "orderby": "-count()"}],
         "layout": {"x": 3, "y": 6, "w": 3, "h": 2, "minH": 2}
       }
     ]
@@ -248,7 +248,7 @@
         "layout": {"x": 0, "y": 0, "w": 3, "h": 1, "minH": 1}
       },
       {
-        "title": "영향받은 사용자 (24시간)",
+        "title": "영향을 받은 사용자 (24시간)",
         "displayType": "big_number",
         "widgetType": "error-events",
         "interval": "1h",
@@ -290,7 +290,7 @@
         "layout": {"x": 0, "y": 0, "w": 3, "h": 1, "minH": 1}
       },
       {
-        "title": "영향받은 사용자 (7일)",
+        "title": "영향을 받은 사용자 (7일)",
         "displayType": "big_number",
         "widgetType": "error-events",
         "interval": "1d",
@@ -332,7 +332,7 @@
         "layout": {"x": 0, "y": 0, "w": 3, "h": 1, "minH": 1}
       },
       {
-        "title": "영향받은 사용자 (30일)",
+        "title": "영향을 받은 사용자 (30일)",
         "displayType": "big_number",
         "widgetType": "error-events",
         "interval": "1d",
@@ -391,21 +391,21 @@
         "layout": {"x": 0, "y": 1, "w": 3, "h": 2, "minH": 2}
       },
       {
-        "title": "가입 화면별 확정 이탈",
+        "title": "가입 화면별 이탈 확정",
         "displayType": "categorical_bar",
         "widgetType": "tracemetrics",
         "interval": "1h",
         "limit": 10,
-        "queries": [{"name": "", "conditions": "has:funnel.step_label", "fields": ["funnel.step_label"], "aggregates": ["max(value,poc.signup.drop_off,gauge,none)"], "columns": ["funnel.step_label"], "fieldAliases": ["화면", "확정 이탈"], "orderby": "-max(value,poc.signup.drop_off,gauge,none)"}],
+        "queries": [{"name": "", "conditions": "has:funnel.step_label", "fields": ["funnel.step_label"], "aggregates": ["max(value,poc.signup.drop_off,gauge,none)"], "columns": ["funnel.step_label"], "fieldAliases": ["화면", "이탈 확정"], "orderby": "-max(value,poc.signup.drop_off,gauge,none)"}],
         "layout": {"x": 3, "y": 1, "w": 3, "h": 2, "minH": 2}
       },
       {
-        "title": "가입 퍼널 최신 정확 집계",
+        "title": "가입 퍼널 최신 집계",
         "displayType": "table",
         "widgetType": "spans",
         "interval": "5m",
         "limit": 20,
-        "queries": [{"name": "", "conditions": "span.op:poc.dashboard.snapshot snapshot.type:signup_funnel", "fields": ["timestamp", "funnel.step_label", "tags[funnel.reached,number]", "tags[funnel.drop_off,number]", "tags[funnel.pending_drop_off,number]", "tags[funnel.drop_off_rate,number]", "tags[funnel.conversion_rate,number]"], "aggregates": [], "columns": ["timestamp", "funnel.step_label", "tags[funnel.reached,number]", "tags[funnel.drop_off,number]", "tags[funnel.pending_drop_off,number]", "tags[funnel.drop_off_rate,number]", "tags[funnel.conversion_rate,number]"], "fieldAliases": ["집계 시각", "화면", "도달", "확정 이탈", "판정 대기", "이탈률 (%)", "전환율 (%)"], "orderby": "-timestamp"}],
+        "queries": [{"name": "", "conditions": "span.op:poc.dashboard.snapshot snapshot.type:signup_funnel", "fields": ["timestamp", "funnel.step_label", "tags[funnel.reached,number]", "tags[funnel.drop_off,number]", "tags[funnel.pending_drop_off,number]", "tags[funnel.drop_off_rate,number]", "tags[funnel.conversion_rate,number]"], "aggregates": [], "columns": ["timestamp", "funnel.step_label", "tags[funnel.reached,number]", "tags[funnel.drop_off,number]", "tags[funnel.pending_drop_off,number]", "tags[funnel.drop_off_rate,number]", "tags[funnel.conversion_rate,number]"], "fieldAliases": ["집계 시각", "화면", "도달", "이탈 확정", "이탈 판단 대기", "이탈률 (%)", "전환율 (%)"], "orderby": "-timestamp"}],
         "layout": {"x": 0, "y": 3, "w": 6, "h": 3, "minH": 2}
       },
       {
@@ -418,21 +418,21 @@
         "layout": {"x": 0, "y": 6, "w": 3, "h": 2, "minH": 2}
       },
       {
-        "title": "서비스·오류별 영향 사용자",
+        "title": "서비스·오류별 영향을 받은 사용자",
         "displayType": "categorical_bar",
         "widgetType": "tracemetrics",
         "interval": "1h",
         "limit": 10,
-        "queries": [{"name": "", "conditions": "", "fields": ["service", "issue_key"], "aggregates": ["max(value,poc.usage.affected_users,gauge,none)"], "columns": ["service", "issue_key"], "fieldAliases": ["서비스", "오류", "영향 사용자"], "orderby": "-max(value,poc.usage.affected_users,gauge,none)"}],
+        "queries": [{"name": "", "conditions": "", "fields": ["service", "issue_key"], "aggregates": ["max(value,poc.usage.affected_users,gauge,none)"], "columns": ["service", "issue_key"], "fieldAliases": ["서비스", "오류", "영향을 받은 사용자"], "orderby": "-max(value,poc.usage.affected_users,gauge,none)"}],
         "layout": {"x": 3, "y": 6, "w": 3, "h": 2, "minH": 2}
       },
       {
-        "title": "활성 사용자 대비 오류 최신 정확 집계",
+        "title": "활성 사용자 대비 오류 최신 집계",
         "displayType": "table",
         "widgetType": "spans",
         "interval": "5m",
         "limit": 20,
-        "queries": [{"name": "", "conditions": "span.op:poc.dashboard.snapshot snapshot.type:user_normalized_error", "fields": ["timestamp", "service", "issue_key", "tags[usage.error_events,number]", "tags[usage.affected_users,number]", "tags[usage.active_users,number]", "tags[usage.affected_user_rate,number]"], "aggregates": [], "columns": ["timestamp", "service", "issue_key", "tags[usage.error_events,number]", "tags[usage.affected_users,number]", "tags[usage.active_users,number]", "tags[usage.affected_user_rate,number]"], "fieldAliases": ["집계 시각", "서비스", "오류", "오류 이벤트", "영향 사용자", "활성 사용자", "영향률 (%)"], "orderby": "-timestamp"}],
+        "queries": [{"name": "", "conditions": "span.op:poc.dashboard.snapshot snapshot.type:user_normalized_error", "fields": ["timestamp", "service", "issue_key", "tags[usage.error_events,number]", "tags[usage.affected_users,number]", "tags[usage.active_users,number]", "tags[usage.affected_user_rate,number]"], "aggregates": [], "columns": ["timestamp", "service", "issue_key", "tags[usage.error_events,number]", "tags[usage.affected_users,number]", "tags[usage.active_users,number]", "tags[usage.affected_user_rate,number]"], "fieldAliases": ["집계 시각", "서비스", "오류", "오류 이벤트", "영향을 받은 사용자", "활성 사용자", "영향률 (%)"], "orderby": "-timestamp"}],
         "layout": {"x": 0, "y": 8, "w": 6, "h": 3, "minH": 2}
       }
     ]
@@ -471,7 +471,7 @@
         "layout": {"x": 0, "y": 2, "w": 6, "h": 3, "minH": 2}
       },
       {
-        "title": "Replay 연결 오류",
+        "title": "세션 리플레이가 있는 오류",
         "displayType": "table",
         "widgetType": "error-events",
         "interval": "1h",

@@ -28,7 +28,7 @@ export function LiveLogsSection({ isSentryEnabled, logsEnabled }: LiveLogsSectio
       <div className="section-heading">
         <div>
           <p className="eyebrow">Near-real-time structured logs</p>
-          <h2 id="live-logs-title">실시간 오류·커스텀 로그</h2>
+          <h2 id="live-logs-title">실시간 오류·사용자 지정 로그</h2>
         </div>
         <p>Sentry 처리 큐를 거치므로 수 초의 지연이 생길 수 있습니다.</p>
       </div>

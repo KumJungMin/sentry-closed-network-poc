@@ -154,7 +154,7 @@ export function useFlowStepPage(options: UseFlowStepPageOptions) {
       if (nextStep) navigate(nextStep.path);
     } catch (error) {
       const errorCode = getErrorCode(error);
-      setErrorMessage("일시적인 기술 오류가 발생했습니다. 다시 시도해 주세요.");
+      setErrorMessage("일시적인 시스템 오류가 발생했습니다. 다시 시도해 주세요.");
       if (onFlowException) onFlowException({ ...context, errorCode, error });
       else emitEvent(onFlowEvent, {
         attemptId: session.attemptId,

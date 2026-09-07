@@ -128,7 +128,7 @@ SDK 이벤트 수집의 핵심 경로는 외부 인터넷을 거칠 필요가 �
 | Trace       | 여러 Transaction과 Span을 잇는 전체 호출 흐름 | 브라우저 → API → 백엔드 처리               | 서비스 간 인과관계 분석                       |
 
 ### Message와 Exception
-`captureException(error)`는 오류 객체와 Stack trace가 있어 “어디서 왜 실패했는가”를 분석할 때 적합합니다. `captureMessage(message)`는 예외가 없어도 기록해야 하는 업무상 사건에 적합합니다. 단순 업무 거절이나 예상된 검증 실패까지 모두 Exception으로 만들면 실제 코드 결함과 섞여 경보 품질이 떨어질 수 있습니다.
+`captureException(error)`는 오류 객체와 Stack trace가 있어 “어디서 왜 실패했는가”를 분석할 때 적합합니다. `captureMessage(message)`는 예외가 없어도 기록해야 하는 업무상 사건에 적합합니다. 단순한 정책상 거절이나 예상된 검증 실패까지 모두 Exception으로 만들면 실제 코드 결함과 섞여 경보 품질이 떨어질 수 있습니다.
 
 ### Breadcrumb와 일반 로그
 Breadcrumb는 이벤트 하나에 딸린 “직전 행적”입니다. 독립적인 전체 로그 저장소가 아닙니다. 오류가 전송될 때 당시 SDK 버퍼에 있던 Breadcrumb들이 함께 붙습니다. 따라서 모든 사용자 행동을 영구 감사 로그로 남기는 용도로 사용하면 안 됩니다.

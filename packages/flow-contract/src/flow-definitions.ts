@@ -54,11 +54,11 @@ export const FLOW_DEFINITIONS: Readonly<Record<FlowName, FlowDefinition>> = {
     version: 1,
     dropOffGracePeriodMs: 15 * 60 * 1_000,
     steps: [
-      { id: "recipient", label: "수취인", path: "/remittance/recipient" },
+      { id: "recipient", label: "받는 분", path: "/remittance/recipient" },
       { id: "amount", label: "송금 금액", path: "/remittance/amount" },
-      { id: "review", label: "송금 확인", path: "/remittance/review" },
+      { id: "review", label: "송금 내용 확인", path: "/remittance/review" },
       { id: "authenticate", label: "송금 인증", path: "/remittance/authenticate" },
-      { id: "result", label: "송금 결과", path: "/remittance/result" },
+      { id: "result", label: "송금 완료", path: "/remittance/result" },
     ],
   }),
   payment: defineFlow({
@@ -69,9 +69,9 @@ export const FLOW_DEFINITIONS: Readonly<Record<FlowName, FlowDefinition>> = {
     steps: [
       { id: "order", label: "주문 확인", path: "/payment/order" },
       { id: "method", label: "결제 수단", path: "/payment/method" },
-      { id: "review", label: "결제 확인", path: "/payment/review" },
+      { id: "review", label: "결제 내용 확인", path: "/payment/review" },
       { id: "authenticate", label: "결제 인증", path: "/payment/authenticate" },
-      { id: "result", label: "결제 결과", path: "/payment/result" },
+      { id: "result", label: "결제 완료", path: "/payment/result" },
     ],
   }),
 };

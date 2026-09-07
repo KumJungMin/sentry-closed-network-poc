@@ -1,4 +1,4 @@
-# Sentry 대시보드 UI 커스텀
+# Sentry 대시보드 UI 사용자 지정
 
 Self-hosted Sentry 26.8.0의 대시보드 위젯에 PoC용 탐색 동작과 플로우 시각화를 추가한다.
 
@@ -8,7 +8,7 @@ Self-hosted Sentry 26.8.0의 대시보드 위젯에 PoC용 탐색 동작과 플�
 - 결과 표의 이벤트 ID 또는 오류 제목을 선택하면 Breadcrumbs가 있는 Event Details로 이동한다.
 - 오류 이벤트 위젯에만 적용하며 Logs·Spans 차트 동작은 바꾸지 않는다.
 - `snapshot.type:domain_flow_funnel` span table 위젯은 일반 표 대신 퍼널 카드로 렌더링한다.
-- 퍼널 카드는 `flow.step_index` 순서로 단계를 정렬하고 `flow.step_display`, `flow.page_path`, 도달, 진행, 확정 이탈, 판정 대기, 이탈률을 함께 보여준다.
+- 퍼널 카드는 `flow.step_index` 순서로 단계를 정렬하고 `flow.step_display`, `flow.page_path`, 도달, 다음 단계 이동, 이탈 확정, 이탈 판단 대기, 이탈률을 함께 보여준다.
 
 ## 빌드
 
@@ -36,7 +36,7 @@ docker build \
 
 ## 적용
 
-데이터 볼륨은 변경하지 않는다. 웹 컨테이너만 커스텀 이미지로 교체한다.
+데이터 볼륨은 변경하지 않는다. 웹 컨테이너만 사용자 지정 이미지로 교체한다.
 
 ```bash
 cd .runtime/self-hosted

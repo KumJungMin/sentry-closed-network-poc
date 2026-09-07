@@ -5,7 +5,7 @@ import {
   validateCustomDataInput,
 } from "./customData.core";
 
-describe("Phase 5 커스텀 데이터 매핑", () => {
+describe("Phase 5 사용자 지정 데이터 매핑", () => {
   it("검색과 집계가 필요한 값만 Tag로 만든다", () => {
     const payload = buildCustomDataPayload({
       ...defaultCustomDataFormState,

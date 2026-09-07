@@ -4,10 +4,10 @@
 
 Self-hosted Sentry 26.8.0에서 실제로 저장되고 조회되는 데이터만 사용해 다음 영역을 대시보드로 구성한다.
 
-- 프론트엔드 안정성: 전체 오류, 영향 사용자, 새 이슈, 미해결 이슈, 브라우저, 릴리스
+- 프론트엔드 안정성: 전체 오류, 영향을 받은 사용자, 새 이슈, 미해결 이슈, 브라우저, 배포 버전
 - 업무 오류: channel, service, partner, currency, process_step, error_code
 - API와 성능: HTTP 요청량·상태·지연, 느린 API, 페이지 로드, Web Vitals, Performance Score
-- 기간별 오류: 24시간, 7일, 30일 오류·영향 사용자·Top N
+- 기간별 오류: 24시간, 7일, 30일 오류·영향을 받은 사용자·Top N
 - Tag와 Context의 검색·집계 차이
 
 대시보드 API 문서뿐 아니라 설치된 26.8.0 이미지의 Frontend Overview, Outbound API Requests, Web Vitals 사전 구성에 사용된 필드와 쿼리를 확인했다. 모든 생성 요청은 `validateOnly=1` 검증을 통과한 뒤 저장했다.
@@ -34,7 +34,7 @@ Self-hosted Sentry 26.8.0에서 실제로 저장되고 조회되는 데이터만
 - `http://127.0.0.1:9000/organizations/sentry/dashboard/5/`
 - `http://127.0.0.1:9000/organizations/sentry/dashboard/6/`
 
-Dashboard 1에는 `영향받은 사용자 오류 로그`와 `미해결 이슈 오류 로그` 표가 있다. 첫 번째 표는 `user.id`가 있는 개별 오류를, 두 번째 표는 `is:unresolved`인 개별 오류를 대시보드 표의 상한인 최신 20건까지 표시한다. 두 표에서 이벤트 ID 또는 오류 제목을 선택하면 Event Details로 이동하며, Breadcrumbs·Replay·사용자 ID·업무 Tag·Stack Trace를 함께 확인할 수 있다.
+Dashboard 1에는 `영향을 받은 사용자 오류 로그`와 `미해결 이슈 오류 로그` 표가 있다. 첫 번째 표는 `user.id`가 있는 개별 오류를, 두 번째 표는 `is:unresolved`인 개별 오류를 대시보드 표의 상한인 최신 20건까지 표시한다. 두 표에서 이벤트 ID 또는 오류 제목을 선택하면 Event Details로 이동하며, Breadcrumbs·Replay·사용자 ID·업무 Tag·Stack Trace를 함께 확인할 수 있다.
 
 정의는 `scripts/phase6-dashboards.json`, 적용 명령은 `scripts/create-phase6-dashboards.sh`에 있다. 스크립트는 실제 토큰을 출력하지 않고 Git에서 제외된 `test-app/.env.sentry-build-plugin`을 읽는다. 같은 제목이 있으면 PUT update하고 없으면 POST create한다.
 
@@ -46,7 +46,7 @@ Dashboard 1에는 `영향받은 사용자 오류 로그`와 `미해결 이슈 �
 
 Dashboard 2의 `channel`, `service`, `partner`, `currency`, `process_step`, `error_code` 막대는 선택한 분류값의 개별 오류 이벤트 표로 이동한다. 이동할 때 대시보드의 기간·프로젝트·환경·공통 필터를 유지하고, 선택한 Tag 조건을 추가한다. 상세 표는 이벤트 ID, 발생 시각, 오류 제목, 프로젝트, 사용자 ID, 선택한 업무 Tag를 최신순 최대 100개까지 표시한다. 이벤트 ID 또는 오류 제목을 선택하면 Event Details로 이동해 오류 직전의 Breadcrumbs 행동 기록을 확인할 수 있다.
 
-이 동작은 Self-hosted Sentry 26.8.0 프론트엔드에 적용한 제한적 커스텀 패치다. 오류 위젯에만 적용하므로 Logs와 Spans 차트의 기본 동작은 바뀌지 않는다. 빌드·적용·화면 확인·롤백 방법은 [`sentry-ui-customization/README.md`](../sentry-ui-customization/README.md)에 정리했다. 일반 `./scripts/sentry.sh restart`도 커스텀 Compose 오버레이를 유지한다.
+이 동작은 Self-hosted Sentry 26.8.0 프론트엔드에 적용한 제한적 사용자 지정 패치다. 오류 위젯에만 적용하므로 Logs와 Spans 차트의 기본 동작은 바뀌지 않는다. 빌드·적용·화면 확인·롤백 방법은 [`sentry-ui-customization/README.md`](../sentry-ui-customization/README.md)에 정리했다. 일반 `./scripts/sentry.sh restart`도 사용자 지정 Compose 오버레이를 유지한다.
 
 ## 프론트엔드 안정성 실제 결과
 
@@ -55,14 +55,14 @@ Dashboard 2의 `channel`, `service`, `partner`, `currency`, `process_step`, `err
 | 지표 | 실제 결과 | 판정 |
 | --- | ---: | --- |
 | 전체 오류 이벤트 | 13 | 현재 버전에서 가능 |
-| 고유 영향 사용자 | 0 | 집계 함수는 동작하지만 현재 이벤트의 user가 `null` |
+| 고유 영향을 받은 사용자 | 0 | 집계 함수는 동작하지만 현재 이벤트의 user가 `null` |
 | 미해결 고유 이슈 | 9 | `is:unresolved`와 `count_unique(issue)`로 가능 |
 | 새 이슈 | 9 | Issue 위젯의 `count(new_issues)`로 가능 |
 | 해결 이슈 | 0 | Issue 위젯의 `count(resolved_issues)`로 가능 |
 | HeadlessChrome 오류 | 11 | `browser.name` 그룹 집계 가능 |
 | Chrome 오류 | 2 | `browser.name` 그룹 집계 가능 |
 
-릴리스별 오류는 다음과 같이 조회됐다.
+배포 버전별 오류는 다음과 같이 조회됐다.
 
 | release | 오류 수 |
 | --- | ---: |
@@ -127,14 +127,14 @@ Context는 이벤트 한 건의 원인 분석에는 보이지만 검색·집계 
 - Errors 이벤트 수와 고유 Issue 수
 - 미해결 Issue 필터
 - Issue 위젯의 새 이슈·해결 이슈 시계열
-- 브라우저, 릴리스, 커스텀 Tag별 오류 집계
+- 브라우저, 배포 버전, 사용자 지정 Tag별 오류 집계
 - Span 기반 페이지 로드 지연
 - LCP, FCP, INP, CLS, TTFB Web Vitals 집계
 - Custom Dashboard 생성·편집 API
 
 ### 기능은 있으나 데이터 또는 설정이 더 필요
 
-- 영향 사용자: 내부 HMAC `dbg_v1_*` 발급과 SDK/Relay allowlist를 구현했으며 실제 트래픽 연결 필요
+- 영향을 받은 사용자: 내부 HMAC `dbg_v1_*` 발급과 SDK/Relay allowlist를 구현했으며 실제 트래픽 연결 필요
 - HTTP 실패·상태·평균 응답·느린 API: `http.client` Span 계측과 실제 API 트래픽이 필요
 - CLS: layout shift가 발생하는 테스트 또는 실제 표본이 필요
 - 장기 보관: Self-hosted의 retention, 디스크, ClickHouse 용량 정책을 별도로 결정해야 함
@@ -153,7 +153,7 @@ Context는 이벤트 한 건의 원인 분석에는 보이지만 검색·집계 
 - 많은 차원과 높은 cardinality를 가진 자유 분석
 - Sentry 자체 컨테이너, Kafka, ClickHouse, PostgreSQL의 인프라 모니터링
 
-Sentry Dashboard는 오류와 Trace를 배포·릴리스·코드 문맥에 연결해 진단하는 용도에 적합하다. 회사의 업무 통계 원장이나 범용 BI 저장소로 사용하지 않는다.
+Sentry Dashboard는 오류와 Trace를 배포 버전·코드 문맥에 연결해 진단하는 용도에 적합하다. 회사의 업무 통계 원장이나 범용 BI 저장소로 사용하지 않는다.
 
 ## 운영 중 관찰한 사항
 
@@ -177,7 +177,7 @@ Sentry Dashboard는 오류와 Trace를 배포·릴리스·코드 문맥에 연�
 ### 제한
 
 - 현재 표본에 `http.client` Span이 없어 API 관련 위젯은 비어 있음
-- user가 `null`이므로 영향 사용자 값은 0
+- user가 `null`이므로 영향을 받은 사용자 값은 0
 - CLS 표본이 없어 P75 CLS는 값 없음
 - 브라우저 자동 제어 모듈 호환 문제로 화면 픽셀 단위 자동 검증은 수행하지 못했으며, 저장 결과와 데이터는 API로 검증함
 

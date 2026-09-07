@@ -22,14 +22,14 @@ test("도메인 대시보드는 세 전용 프로젝트만 조회한다", () => 
 test("현황 대시보드는 오류, Replay, 단계, URL 성능을 제공한다", () => {
   const dashboard = dashboards.find(({ title }) => title === "PoC - 도메인 프론트 현황");
   const titles = new Set(dashboard.widgets.map(({ title }) => title));
-  assert.ok(titles.has("Replay 연결 오류"));
-  assert.ok(titles.has("플로우 단계별 기술 오류"));
-  assert.ok(titles.has("오류 코드별 기술 오류"));
+  assert.ok(titles.has("세션 리플레이가 있는 오류"));
+  assert.ok(titles.has("플로우 단계별 시스템 오류"));
+  assert.ok(titles.has("오류 코드별 시스템 오류"));
   assert.ok(titles.has("URL별 화면 성능"));
   assert.ok(titles.has("플로우별 이탈률"));
 });
 
-test("정확한 이탈률 위젯은 확정 이탈과 판정 대기를 분리한다", () => {
+test("이탈률 위젯은 이탈 확정과 이탈 판단 대기를 분리한다", () => {
   const dashboard = dashboards.find(({ title }) => title === "PoC - 도메인 프론트 현황");
   const widget = dashboard.widgets.find(({ title }) => title === "플로우별 이탈률");
   assert.equal(widget.widgetType, "spans");
@@ -44,13 +44,13 @@ test("정확한 이탈률 위젯은 확정 이탈과 판정 대기를 분리한�
 
 test("사용자 조사 대시보드는 user.id와 attempt ID를 함께 표시한다", () => {
   const dashboard = dashboards.find(({ title }) => title === "PoC - 사용자 플로우 조사");
-  const logWidget = dashboard.widgets.find(({ title }) => title === "최근 플로우 행동 로그");
+  const logWidget = dashboard.widgets.find(({ title }) => title === "최근 플로우 진행 로그");
   assert.equal(logWidget.queries[0].conditions, "has:flow.event");
   assert.ok(logWidget.queries[0].fields.includes("user.id"));
   assert.ok(logWidget.queries[0].fields.includes("flow.slug"));
   assert.ok(logWidget.queries[0].fields.includes("flow.attempt_id"));
 
-  const errorWidget = dashboard.widgets.find(({ title }) => title === "사용자와 Replay가 연결된 오류");
+  const errorWidget = dashboard.widgets.find(({ title }) => title === "사용자·세션 리플레이가 연결된 오류");
   assert.ok(errorWidget.queries[0].fields.includes("replayId"));
   assert.ok(errorWidget.queries[0].fields.includes("error_code"));
 });

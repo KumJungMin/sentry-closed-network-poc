@@ -38,7 +38,7 @@ export function useCustomDataTest(isSentryEnabled: boolean) {
     }
 
     if (!isSentryEnabled) {
-      setErrors(["Sentry DSN을 설정한 뒤 커스텀 이벤트를 전송할 수 있습니다."]);
+      setErrors(["Sentry DSN을 설정한 뒤 사용자 지정 이벤트를 전송할 수 있습니다."]);
       setResult(null);
       return;
     }
@@ -61,14 +61,14 @@ export function useCustomDataTest(isSentryEnabled: boolean) {
       const flushed = await Sentry.flush(2000);
       setResult({
         tone: "sent",
-        summary: "금융 WebView 커스텀 이벤트를 전송했습니다.",
+        summary: "금융 WebView 사용자 지정 이벤트를 전송했습니다.",
         detail: `event id: ${eventId} · ${flushed ? "로컬 전송 큐 완료" : "전송 큐 확인 필요"}`,
       });
     } catch (cause) {
       const detail = cause instanceof Error ? cause.message : "알 수 없는 Sentry 전송 오류";
       setResult({
         tone: "failed",
-        summary: "커스텀 이벤트 전송 중 오류가 발생했습니다.",
+        summary: "사용자 지정 이벤트 전송 중 오류가 발생했습니다.",
         detail,
       });
     } finally {

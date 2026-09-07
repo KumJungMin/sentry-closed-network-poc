@@ -1,6 +1,6 @@
 # 가입·송금·결제 도메인 플로우 관측 가이드
 
-이 문서는 가입, 송금, 결제 앱의 URL 기반 플로우를 실행하고 Self-hosted Sentry에서 이탈률, 한 사용자의 행동, 기술 오류, Replay와 원본 소스를 조사하는 절차를 설명합니다.
+이 문서는 가입, 송금, 결제 앱의 URL 기반 플로우를 실행하고 Self-hosted Sentry에서 이탈률, 한 사용자의 행동, 시스템 오류, Replay와 원본 소스를 조사하는 절차를 설명합니다.
 
 ## 수집 범위
 
@@ -26,7 +26,7 @@
 pnpm analytics
 ```
 
-`pnpm analytics`는 정확 집계 API와 Sentry snapshot publisher를 함께 실행합니다. publisher는 60초마다 세 플로우를 다시 계산하므로, 마지막 사용자가 화면을 닫아 추가 이벤트가 없어도 유예 시간 경과 후 확정 이탈이 Sentry에 반영됩니다.
+`pnpm analytics`는 정확 집계 API와 Sentry snapshot publisher를 함께 실행합니다. publisher는 60초마다 세 플로우를 다시 계산하므로, 마지막 사용자가 화면을 닫아 추가 이벤트가 없어도 유예 시간 경과 후 이탈 확정이 Sentry에 반영됩니다.
 
 ```bash
 pnpm dev:flows
@@ -54,7 +54,7 @@ pnpm publish:flow-snapshots
 
 Sentry에서 다음 두 대시보드를 사용합니다.
 
-- `PoC - 도메인 프론트 현황`: 기술 오류, 영향 사용자, Replay 연결, 서비스·단계·오류 코드, URL 성능, 릴리스, 정확한 이탈률 집계
+- `PoC - 도메인 프론트 현황`: 시스템 오류, 영향을 받은 사용자, 세션 리플레이 연결, 서비스·단계·오류 코드, URL 성능, 배포 버전, 정확한 이탈률 집계
 - `PoC - 사용자 플로우 조사`: 최근 행동 로그, 행동·단계별 로그, 사용자와 Replay가 연결된 오류
 
 현재 로컬 Sentry의 직접 주소는 각각 `/organizations/sentry/dashboard/9/`, `/organizations/sentry/dashboard/10/`입니다. 다른 환경에서는 ID가 달라질 수 있으므로 대시보드 제목을 기준으로 찾습니다.
@@ -63,13 +63,13 @@ Sentry에서 다음 두 대시보드를 사용합니다.
 
 `PoC - 도메인 프론트 현황`의 `플로우별 이탈률`을 봅니다. 이 값은 Sentry 이벤트 수를 단순 계산한 결과가 아닙니다. 내부 집계 서버가 `attempt ID`별 최초 도달과 다음 단계 진행을 중복 제거한 뒤 집계 snapshot만 Sentry span으로 발행합니다.
 
-커스텀 Sentry UI가 적용된 환경에서는 이 위젯이 일반 표 대신 퍼널 카드로 보입니다. 각 단계는 `flow.step_index` 순서로 정렬되고, `flow.step_display`와 `flow.page_path`로 화면 순서와 URL을 함께 확인할 수 있습니다.
+사용자 지정 Sentry UI가 적용된 환경에서는 이 위젯이 일반 표 대신 퍼널 카드로 보입니다. 각 단계는 `flow.step_index` 순서로 정렬되고, `flow.step_display`와 `flow.page_path`로 화면 순서와 URL을 함께 확인할 수 있습니다.
 
 - 가입: 30분 후 이탈 확정
 - 송금: 15분 후 이탈 확정
 - 결제: 5분 후 이탈 확정
-- 유예 시간 안의 미진행은 `판정 대기`, 이후에는 `확정 이탈`로 구분
-- `이 플로우 취소` 선택은 유예 시간 없이 이탈로 확정
+- 유예 시간 안의 미진행은 `이탈 판단 대기`, 이후에는 `이탈 확정`으로 구분
+- `이 절차 취소` 선택은 유예 시간 없이 이탈 확정
 
 ### 한 사용자의 전체 행동
 
@@ -82,7 +82,7 @@ Logs에는 `user.id`, `service`, `flow.slug`, `flow.step`, `flow.event`, `flow.a
 
 ### 오류와 Replay, 원본 소스
 
-`PoC - 사용자 플로우 조사`의 `사용자와 Replay가 연결된 오류`에서 이벤트를 엽니다. 기술 오류만 Issue와 error Replay를 생성합니다. 정상 세션과 업무 거절은 Replay를 전송하지 않습니다.
+`PoC - 사용자 플로우 조사`의 `사용자·세션 리플레이가 연결된 오류`에서 이벤트를 엽니다. 시스템 오류만 Issue와 error Replay를 생성합니다. 정상 세션과 정책상 거절은 Replay를 전송하지 않습니다.
 
 이벤트 상세에서 다음을 같은 키로 연결합니다.
 
@@ -108,7 +108,7 @@ pnpm build
 | --- | --- | --- |
 | `OK` 또는 일반 값 | 다음 단계 진행 | 행동 Logs와 정확 집계 |
 | `DECLINE` | 업무 정책 거절 | 경고 Log만 생성, Issue·Replay 없음 |
-| `TIMEOUT` | 기술 오류 | 오류 Log, Issue, error Replay 생성 |
+| `TIMEOUT` | 시스템 오류 | 오류 Log, Issue, error Replay 생성 |
 
 입력 검증 실패는 사용자의 수정 가능한 행동이므로 Issue를 만들지 않습니다. 예상하지 못한 JavaScript 오류와 API 기술 실패는 원본 `Error` 객체를 capture하여 stack trace를 유지합니다.
 
@@ -116,7 +116,7 @@ pnpm build
 
 - `reactRouterBrowserTracingIntegration`: URL별 navigation transaction과 span
 - Web Vitals: 브라우저 tracing에 연결된 LCP, CLS, INP 등의 성능 진단
-- Sentry Logs: Issue로 승격하지 않을 정상 행동과 업무 거절
+- Sentry Logs: Issue로 승격하지 않을 정상 행동과 정책상 거절
 - error-only Replay: 오류 전후 화면 재현, 전체 기본 마스킹과 민감 영역 차단
 - release·environment·service 태그: 배포 및 앱 경계별 회귀 비교
 - 내부 정확 집계: 샘플링·중복 전송에 영향을 받지 않는 모수와 이탈률
