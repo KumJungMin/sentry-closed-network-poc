@@ -22,3 +22,8 @@ export {
   createSentryFlowEventSink,
   recordFlowEvent,
 } from "./flow-telemetry.js";
+export {
+  createObservedFlowEventSink,
+  sendFlowAnalyticsEvent,
+} from "./internal-analytics.js";
+export type { InternalAnalyticsOptions } from "./internal-analytics.js";
