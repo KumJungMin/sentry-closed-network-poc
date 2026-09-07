@@ -26,12 +26,12 @@ test("현황 대시보드는 오류, Replay, 단계, URL 성능을 제공한다"
   assert.ok(titles.has("플로우 단계별 기술 오류"));
   assert.ok(titles.has("오류 코드별 기술 오류"));
   assert.ok(titles.has("URL별 화면 성능"));
-  assert.ok(titles.has("플로우별 최신 정확 집계"));
+  assert.ok(titles.has("플로우별 이탈률"));
 });
 
 test("정확한 이탈률 위젯은 확정 이탈과 판정 대기를 분리한다", () => {
   const dashboard = dashboards.find(({ title }) => title === "PoC - 도메인 프론트 현황");
-  const widget = dashboard.widgets.find(({ title }) => title === "플로우별 최신 정확 집계");
+  const widget = dashboard.widgets.find(({ title }) => title === "플로우별 이탈률");
   assert.equal(widget.widgetType, "spans");
   assert.ok(widget.queries[0].fields.includes("tags[flow.step_index,number]"));
   assert.ok(widget.queries[0].fields.includes("flow.step_display"));
