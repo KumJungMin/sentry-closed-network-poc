@@ -7,6 +7,11 @@ import {
   DEFAULT_FUNNEL_DROPOFF_GRACE_PERIOD_MS,
   normalizeAnalyticsEvent,
 } from "./analytics-core.mjs";
+import {
+  calculateAllFlowFunnels,
+  calculateFlowFunnel,
+  normalizeFlowAnalyticsEvent,
+} from "./flow-analytics-core.mjs";
 import { pseudonymizeUserId } from "./identity-core.mjs";
 import { PrivacyGate, buildSyntheticProfile } from "./privacy-gate.mjs";
 import { calculateNormalizedErrorRanking, normalizeUsageEvent } from "./usage-core.mjs";
@@ -82,6 +87,14 @@ const server = createServer(async (request, response) => {
     }
 
     if (request.method === "GET" && url.pathname === "/api/analytics/funnel") {
+      const flowName = url.searchParams.get("flowName");
+      if (flowName) {
+        sendJson(response, 200, {
+          generatedAt: new Date().toISOString(),
+          ...calculateFlowFunnel(events, { flowName }),
+        });
+        return;
+      }
       sendJson(response, 200, {
         generatedAt: new Date().toISOString(),
         ...calculateFunnel(events, { dropOffGracePeriodMs: funnelDropOffGracePeriodMs }),
@@ -89,8 +102,19 @@ const server = createServer(async (request, response) => {
       return;
     }
 
+    if (request.method === "GET" && url.pathname === "/api/analytics/flows") {
+      sendJson(response, 200, {
+        generatedAt: new Date().toISOString(),
+        flows: calculateAllFlowFunnels(events),
+      });
+      return;
+    }
+
     if (request.method === "POST" && url.pathname === "/api/analytics/events") {
-      const event = normalizeAnalyticsEvent(await readJson(request));
+      const input = await readJson(request);
+      const event = input.flowName
+        ? normalizeFlowAnalyticsEvent(input)
+        : normalizeAnalyticsEvent(input);
       events.push(event);
       await appendFile(eventFile, `${JSON.stringify(event)}\n`, { mode: 0o600 });
       sendJson(response, 202, { accepted: true });
