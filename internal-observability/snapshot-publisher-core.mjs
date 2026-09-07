@@ -20,7 +20,18 @@ export function normalizeFlowSummary(payload, expectedFlowName) {
     throw new Error("플로우 집계 응답의 단계가 올바르지 않습니다.");
   }
 
-  return payload;
+  return {
+    ...payload,
+    steps: payload.steps.map((step, index) => {
+      const stepIndex = step.index ?? index + 1;
+
+      return {
+        ...step,
+        index: stepIndex,
+        display: step.display ?? `${String(stepIndex).padStart(2, "0")}. ${step.label}`,
+      };
+    }),
+  };
 }
 
 export function buildSnapshotSpanOptions(summary, step, publishedAt = new Date()) {
