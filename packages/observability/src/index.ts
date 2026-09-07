@@ -24,6 +24,9 @@ export {
 } from "./flow-telemetry.js";
 export {
   createObservedFlowEventSink,
+  fetchFlowFunnelSummary,
   sendFlowAnalyticsEvent,
 } from "./internal-analytics.js";
 export type { InternalAnalyticsOptions } from "./internal-analytics.js";
+export { publishFlowFunnelSnapshot } from "./flow-snapshot.js";
+export type { FlowFunnelSummary, FlowFunnelSummaryStep } from "./flow-snapshot.js";

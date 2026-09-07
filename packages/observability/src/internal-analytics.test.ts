@@ -4,7 +4,10 @@ import {
   sendFlowAnalyticsEvent,
 } from "./internal-analytics.js";
 
-const sentryMocks = vi.hoisted(() => ({ logger: { warn: vi.fn() } }));
+const sentryMocks = vi.hoisted(() => ({
+  logger: { warn: vi.fn() },
+  startInactiveSpan: vi.fn(() => ({ end: vi.fn() })),
+}));
 const telemetryMocks = vi.hoisted(() => ({ recordFlowEvent: vi.fn() }));
 
 vi.mock("@sentry/react", () => sentryMocks);
@@ -17,6 +20,16 @@ const input = {
   step: "order",
   event: "step_viewed",
 } as const;
+
+const summary = {
+  flowName: "payment",
+  flowVersion: 1,
+  service: "frontend-payment",
+  dropOffGracePeriodMs: 300_000,
+  totalAttempts: 1,
+  completedAttempts: 0,
+  steps: [],
+};
 
 describe("내부 플로우 집계 전송", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -41,11 +54,14 @@ describe("내부 플로우 집계 전송", () => {
   });
 
   it("Sentry 기록과 내부 집계 전송을 함께 실행한다", async () => {
-    const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 202 }));
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(new Response(null, { status: 202 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(summary), { status: 200 }));
     await createObservedFlowEventSink({ fetcher })(input);
 
     expect(telemetryMocks.recordFlowEvent).toHaveBeenCalledWith(input);
-    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(fetcher.mock.calls[1][0]).toBe("/internal-api/analytics/funnel?flowName=payment");
   });
 
   it("내부 집계 실패를 Sentry 경고 로그로 남긴다", async () => {
