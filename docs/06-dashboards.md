@@ -34,6 +34,8 @@ Self-hosted Sentry 26.8.0에서 실제로 저장되고 조회되는 데이터만
 - `http://127.0.0.1:9000/organizations/sentry/dashboard/5/`
 - `http://127.0.0.1:9000/organizations/sentry/dashboard/6/`
 
+Dashboard 1에는 `영향받은 사용자 오류 로그`와 `미해결 이슈 오류 로그` 표가 있다. 첫 번째 표는 `user.id`가 있는 개별 오류를, 두 번째 표는 `is:unresolved`인 개별 오류를 대시보드 표의 상한인 최신 20건까지 표시한다. 두 표에서 이벤트 ID 또는 오류 제목을 선택하면 Event Details로 이동하며, Breadcrumbs·Replay·사용자 ID·업무 Tag·Stack Trace를 함께 확인할 수 있다.
+
 정의는 `scripts/phase6-dashboards.json`, 적용 명령은 `scripts/create-phase6-dashboards.sh`에 있다. 스크립트는 실제 토큰을 출력하지 않고 Git에서 제외된 `test-app/.env.sentry-build-plugin`을 읽는다. 같은 제목이 있으면 PUT update하고 없으면 POST create한다.
 
 ```bash

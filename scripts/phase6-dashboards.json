@@ -31,12 +31,30 @@
         "layout": {"x": 4, "y": 0, "w": 2, "h": 1, "minH": 1}
       },
       {
+        "title": "영향받은 사용자 오류 로그",
+        "displayType": "table",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "limit": 20,
+        "queries": [{"name": "", "conditions": "has:user.id", "fields": ["id", "timestamp", "user.id", "title", "project", "service"], "aggregates": [], "columns": ["id", "timestamp", "user.id", "title", "project", "service"], "fieldAliases": ["이벤트 ID", "발생 시각", "사용자 ID", "오류", "프로젝트", "서비스"], "orderby": "-timestamp"}],
+        "layout": {"x": 0, "y": 1, "w": 3, "h": 3, "minH": 2}
+      },
+      {
+        "title": "미해결 이슈 오류 로그",
+        "displayType": "table",
+        "widgetType": "error-events",
+        "interval": "1h",
+        "limit": 20,
+        "queries": [{"name": "", "conditions": "is:unresolved", "fields": ["id", "timestamp", "title", "project", "user.id", "service", "error_code"], "aggregates": [], "columns": ["id", "timestamp", "title", "project", "user.id", "service", "error_code"], "fieldAliases": ["이벤트 ID", "발생 시각", "오류", "프로젝트", "사용자 ID", "서비스", "오류 코드"], "orderby": "-timestamp"}],
+        "layout": {"x": 3, "y": 1, "w": 3, "h": 3, "minH": 2}
+      },
+      {
         "title": "신규 및 해결된 이슈",
         "displayType": "bar",
         "widgetType": "issue",
         "interval": "1h",
         "queries": [{"name": "", "conditions": "", "fields": ["count(new_issues)", "count(resolved_issues)"], "aggregates": ["count(new_issues)", "count(resolved_issues)"], "columns": [], "fieldAliases": ["신규", "해결됨"], "orderby": ""}],
-        "layout": {"x": 0, "y": 1, "w": 6, "h": 2, "minH": 2}
+        "layout": {"x": 0, "y": 4, "w": 6, "h": 2, "minH": 2}
       },
       {
         "title": "브라우저별 오류",
@@ -45,7 +63,7 @@
         "interval": "1h",
         "limit": 10,
         "queries": [{"name": "", "conditions": "has:browser.name", "fields": ["browser.name", "count()"], "aggregates": ["count()"], "columns": ["browser.name"], "fieldAliases": ["브라우저", "오류"], "orderby": "-count()"}],
-        "layout": {"x": 0, "y": 3, "w": 3, "h": 2, "minH": 2}
+        "layout": {"x": 0, "y": 6, "w": 3, "h": 2, "minH": 2}
       },
       {
         "title": "릴리스별 오류",
@@ -55,7 +73,7 @@
         "limit": 5,
         "legendType": "breakdown",
         "queries": [{"name": "", "conditions": "has:release", "fields": ["release", "count()"], "aggregates": ["count()"], "columns": ["release"], "fieldAliases": ["릴리스", "오류"], "orderby": "-count()"}],
-        "layout": {"x": 3, "y": 3, "w": 3, "h": 2, "minH": 2}
+        "layout": {"x": 3, "y": 6, "w": 3, "h": 2, "minH": 2}
       }
     ]
   },

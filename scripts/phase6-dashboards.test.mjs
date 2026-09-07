@@ -30,6 +30,24 @@ test("각 기간 대시보드는 오류·사용자·추이·순위를 모두 제
   }
 });
 
+test("프론트엔드 안정성 대시보드는 사용자 및 미해결 이슈의 개별 오류 로그를 제공한다", () => {
+  const dashboard = dashboards.find(({ title }) => title === "PoC - 프론트엔드 안정성");
+  const affectedUserLogs = dashboard.widgets.find(({ title }) => title === "영향받은 사용자 오류 로그");
+  const unresolvedIssueLogs = dashboard.widgets.find(({ title }) => title === "미해결 이슈 오류 로그");
+
+  assert.equal(affectedUserLogs.displayType, "table");
+  assert.equal(affectedUserLogs.queries[0].conditions, "has:user.id");
+  assert.ok(affectedUserLogs.queries[0].fields.includes("user.id"));
+  assert.ok(affectedUserLogs.queries[0].fields.includes("id"));
+  assert.ok(affectedUserLogs.queries[0].fields.includes("title"));
+
+  assert.equal(unresolvedIssueLogs.displayType, "table");
+  assert.equal(unresolvedIssueLogs.queries[0].conditions, "is:unresolved");
+  assert.ok(unresolvedIssueLogs.queries[0].fields.includes("user.id"));
+  assert.ok(unresolvedIssueLogs.queries[0].fields.includes("id"));
+  assert.ok(unresolvedIssueLogs.queries[0].fields.includes("title"));
+});
+
 test("성능 대시보드는 전체 및 페이지별 Performance Score와 Web Vitals를 함께 제공한다", () => {
   const dashboard = dashboards.find(({ title }) => title === "PoC - API 및 프론트엔드 성능");
   const scoreFormula = "performance_score(measurements.score.total)";
