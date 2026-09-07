@@ -14,6 +14,7 @@ import {
 } from "./flow-analytics-core.mjs";
 import { pseudonymizeUserId } from "./identity-core.mjs";
 import { PrivacyGate, buildSyntheticProfile } from "./privacy-gate.mjs";
+import { resolveFlowScenario } from "./scenario-core.mjs";
 import { calculateNormalizedErrorRanking, normalizeUsageEvent } from "./usage-core.mjs";
 
 const port = Number(process.env.INTERNAL_OBSERVABILITY_PORT || 4318);
@@ -126,6 +127,12 @@ const server = createServer(async (request, response) => {
       usageEvents.push(usageEvent);
       await appendFile(usageEventFile, `${JSON.stringify(usageEvent)}\n`, { mode: 0o600 });
       sendJson(response, 202, { accepted: true });
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/simulations/flow-submit") {
+      const result = resolveFlowScenario(await readJson(request));
+      sendJson(response, result.statusCode, result.body);
       return;
     }
 
