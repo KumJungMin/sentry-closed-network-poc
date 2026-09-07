@@ -89,7 +89,7 @@
         "displayType": "table",
         "widgetType": "logs",
         "interval": "5m",
-        "limit": 50,
+        "limit": 20,
         "queries": [{"name": "", "conditions": "message:frontend_flow_event", "fields": ["timestamp", "user.id", "service", "flow.name", "flow.step", "flow.event", "flow.attempt_id", "page.path"], "aggregates": [], "columns": ["timestamp", "user.id", "service", "flow.name", "flow.step", "flow.event", "flow.attempt_id", "page.path"], "fieldAliases": ["시각", "사용자 ID", "서비스", "플로우", "단계", "행동", "시도 ID", "URL"], "orderby": "-timestamp"}],
         "layout": {"x": 0, "y": 0, "w": 6, "h": 4, "minH": 3}
       },
@@ -116,7 +116,7 @@
         "displayType": "table",
         "widgetType": "error-events",
         "interval": "1h",
-        "limit": 30,
+        "limit": 20,
         "queries": [{"name": "", "conditions": "has:user has:replayId", "fields": ["id", "timestamp", "title", "user", "flow.name", "flow.step", "flow.attempt_id", "error_code", "replayId"], "aggregates": [], "columns": ["id", "timestamp", "title", "user", "flow.name", "flow.step", "flow.attempt_id", "error_code", "replayId"], "fieldAliases": ["이벤트 ID", "시각", "오류", "사용자", "플로우", "단계", "시도 ID", "오류 코드", "Replay ID"], "orderby": "-timestamp"}],
         "layout": {"x": 0, "y": 6, "w": 6, "h": 3, "minH": 2}
       }
