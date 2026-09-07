@@ -1,4 +1,6 @@
 import type { FlowEventInput, FlowName, FlowStepId } from "@poc/flow-contract";
+import type { ComponentType } from "react";
+import type { RoutesProps } from "react-router-dom";
 
 export interface FlowStepField {
   name: string;
@@ -24,4 +26,5 @@ export interface DomainFlowAppProps {
   userId: string;
   stepContent: Partial<Record<FlowStepId, FlowStepContent>>;
   onFlowEvent?: FlowEventSink;
+  RoutesComponent?: ComponentType<RoutesProps>;
 }

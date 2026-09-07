@@ -127,10 +127,11 @@ function FlowStepPage(_props: FlowStepPageProps) {
 export function DomainFlowApp(_props: DomainFlowAppProps) {
   const definition = getFlowDefinition(_props.flowName);
   const style = { "--accent-color": _props.accentColor } as CSSProperties;
+  const RoutesComponent = _props.RoutesComponent ?? Routes;
 
   return (
     <div className="domain-app" style={style}>
-      <Routes>
+      <RoutesComponent>
         {definition.steps.map((step) => {
           const content = _props.stepContent[step.id];
           if (!content) throw new Error(`${_props.flowName}.${step.id} 화면 내용이 없습니다.`);
@@ -143,7 +144,7 @@ export function DomainFlowApp(_props: DomainFlowAppProps) {
           );
         })}
         <Route path="*" element={<Navigate replace to={definition.steps[0].path} />} />
-      </Routes>
+      </RoutesComponent>
     </div>
   );
 }
