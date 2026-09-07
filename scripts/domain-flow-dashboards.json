@@ -74,6 +74,15 @@
         "limit": 20,
         "queries": [{"name": "", "conditions": "has:release", "fields": ["release", "count()", "count_unique(user)"], "aggregates": ["count()", "count_unique(user)"], "columns": ["release"], "fieldAliases": ["릴리스", "오류", "사용자"], "orderby": "-count()"}],
         "layout": {"x": 3, "y": 3, "w": 3, "h": 3, "minH": 2}
+      },
+      {
+        "title": "플로우별 최신 정확 집계",
+        "displayType": "table",
+        "widgetType": "spans",
+        "interval": "5m",
+        "limit": 20,
+        "queries": [{"name": "", "conditions": "span.op:poc.flow.snapshot snapshot.type:domain_flow_funnel", "fields": ["timestamp", "service", "flow.name", "flow.step_label", "tags[flow.total_attempts,number]", "tags[flow.completed_attempts,number]", "tags[flow.reached,number]", "tags[flow.drop_off,number]", "tags[flow.pending_drop_off,number]", "tags[flow.drop_off_rate,number]"], "aggregates": [], "columns": ["timestamp", "service", "flow.name", "flow.step_label", "tags[flow.total_attempts,number]", "tags[flow.completed_attempts,number]", "tags[flow.reached,number]", "tags[flow.drop_off,number]", "tags[flow.pending_drop_off,number]", "tags[flow.drop_off_rate,number]"], "fieldAliases": ["집계 시각", "서비스", "플로우", "단계", "전체 시도", "완료", "도달", "확정 이탈", "판정 대기", "이탈률 (%)"], "orderby": "-timestamp"}],
+        "layout": {"x": 0, "y": 6, "w": 6, "h": 4, "minH": 3}
       }
     ]
   },
