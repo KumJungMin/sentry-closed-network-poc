@@ -28,7 +28,7 @@ docker build \
 ```bash
 docker build \
   --build-arg SKIP_SENTRY_LINT=1 \
-  --build-arg SENTRY_BUILD_NODE_OPTIONS=--max-old-space-size=8192 \
+  --build-arg SENTRY_BUILD_NODE_OPTIONS=--max-old-space-size=4096 \
   --file sentry-ui-customization/Dockerfile \
   --tag sentry-self-hosted-drilldown:26.8.0 \
   sentry-ui-customization
