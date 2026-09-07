@@ -23,6 +23,16 @@ docker build \
 
 빌드는 독립 패치 테스트, 변경한 Sentry 파일의 ESLint 검사, 프로덕션 번들 생성을 차례로 수행한다. Sentry의 고정된 프론트엔드 소스 조각이 정확히 일치할 때만 진행되며, 버전 업그레이드로 소스가 바뀌면 패치가 즉시 실패하므로 변경 내용을 다시 검토해야 한다. 공식 런타임 이미지에는 Sentry Jest 환경 전체가 포함되지 않으므로 Sentry의 co-located 테스트 파일은 패치에 포함하되 이미지 빌드 안에서는 직접 실행하지 않는다.
 
+로컬 Docker 환경에서 Sentry 프론트엔드 ESLint가 장시간 무출력으로 멈추면, 독립 패치 테스트와 실제 소스 dry-run을 먼저 통과시킨 뒤 다음 옵션으로 lint만 건너뛴다.
+
+```bash
+docker build \
+  --build-arg SKIP_SENTRY_LINT=1 \
+  --file sentry-ui-customization/Dockerfile \
+  --tag sentry-self-hosted-drilldown:26.8.0 \
+  sentry-ui-customization
+```
+
 ## 적용
 
 데이터 볼륨은 변경하지 않는다. 웹 컨테이너만 커스텀 이미지로 교체한다.
