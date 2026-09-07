@@ -12,6 +12,7 @@ import {
   ignoredErrors,
   sanitizeSentryBreadcrumb,
   sanitizeSentryEvent,
+  sanitizeSentryLog,
   type CollectionPolicy,
 } from "./privacy.js";
 import { createReplayIntegration } from "./replay.js";
@@ -78,6 +79,7 @@ export function initializeObservability(config: ObservabilityConfig): Observabil
     replaysOnErrorSampleRate: runtime.replayOnErrorSampleRate,
     sendDefaultPii: false,
     beforeSend: sanitizeSentryEvent,
+    beforeSendLog: sanitizeSentryLog,
     beforeBreadcrumb: sanitizeSentryBreadcrumb,
     ignoreErrors: ignoredErrors,
     tracePropagationTargets: ["localhost", "127.0.0.1", /^\//u],

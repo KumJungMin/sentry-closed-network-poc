@@ -1,4 +1,4 @@
-import type { Breadcrumb, ErrorEvent } from "@sentry/react";
+import type { Breadcrumb, ErrorEvent, Log } from "@sentry/react";
 
 export interface CollectionPolicy {
   tracesSampleRate: number;
@@ -74,6 +74,27 @@ function sanitizeUnknown(value: unknown): unknown {
         && typeof childValue === "string"
         ? sanitizeUrl(childValue)
         : sanitizeUnknown(childValue);
+      return [[key, sanitizedValue]];
+    }),
+  );
+}
+
+function sanitizeLogAttributes(attributes: Log["attributes"]): Log["attributes"] {
+  if (!attributes) return undefined;
+
+  return Object.fromEntries(
+    Object.entries(attributes).flatMap(([key, value]) => {
+      if (key === "user.id") {
+        return typeof value === "string" && value.length > 0 && value.length <= 128
+          ? [[key, value]]
+          : [];
+      }
+      if (isSensitiveKey(key)) return [];
+      const normalizedKey = normalizeKey(key);
+      const sanitizedValue = (urlKeys.has(normalizedKey) || normalizedKey.endsWith("url"))
+        && typeof value === "string"
+        ? sanitizeUrl(value)
+        : sanitizeUnknown(value);
       return [[key, sanitizedValue]];
     }),
   );
@@ -163,5 +184,13 @@ export function sanitizeSentryBreadcrumb(breadcrumb: Breadcrumb): Breadcrumb | n
       ? redactSensitiveText(breadcrumb.message)
       : breadcrumb.message,
     data: sanitizeUnknown(breadcrumb.data) as Breadcrumb["data"],
+  };
+}
+
+export function sanitizeSentryLog(log: Log): Log {
+  return {
+    ...log,
+    message: redactSensitiveText(log.message),
+    attributes: sanitizeLogAttributes(log.attributes),
   };
 }

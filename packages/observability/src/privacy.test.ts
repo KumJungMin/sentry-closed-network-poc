@@ -4,6 +4,7 @@ import {
   buildCollectionPolicy,
   sanitizeSentryBreadcrumb,
   sanitizeSentryEvent,
+  sanitizeSentryLog,
   sanitizeUrl,
 } from "./privacy.js";
 
@@ -49,6 +50,27 @@ describe("공통 Sentry 개인정보 정책", () => {
     })).toEqual({
       category: "navigation",
       data: { from: "/payment", to: "/payment/result" },
+    });
+  });
+
+  it("Logs에서도 원본 user.id만 보존하고 나머지 민감 속성을 제거한다", () => {
+    const sanitized = sanitizeSentryLog({
+      level: "info",
+      message: "failed for secret@example.com",
+      attributes: {
+        "user.id": "CUSTOMER-원본-001",
+        "user.email": "secret@example.com",
+        auth_code: "123456",
+        service: "frontend-membership",
+        url: "/signup/identity?token=secret#confirm",
+      },
+    });
+
+    expect(sanitized.message).not.toContain("secret@example.com");
+    expect(sanitized.attributes).toEqual({
+      "user.id": "CUSTOMER-원본-001",
+      service: "frontend-membership",
+      url: "/signup/identity",
     });
   });
 
