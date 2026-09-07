@@ -14,7 +14,7 @@ const membershipSummary = {
   totalAttempts: 3,
   completedAttempts: 1,
   steps: [
-    { id: "terms", label: "약관 동의", path: "/signup/terms", reached: 3, progressed: 2, dropOff: 1, pendingDropOff: 0, dropOffRate: 33.3, conversionRate: 66.7 },
+    { id: "terms", index: 1, label: "약관 동의", display: "01. 약관 동의", path: "/signup/terms", reached: 3, progressed: 2, dropOff: 1, pendingDropOff: 0, dropOffRate: 33.3, conversionRate: 66.7 },
     { id: "account", label: "계정 정보", path: "/signup/account", reached: 2, progressed: 1, dropOff: 1, pendingDropOff: 0, dropOffRate: 50, conversionRate: 33.3 },
     { id: "phone", label: "휴대폰 인증", path: "/signup/phone", reached: 1, progressed: 1, dropOff: 0, pendingDropOff: 0, dropOffRate: 0, conversionRate: 33.3 },
     { id: "identity", label: "본인 확인", path: "/signup/identity", reached: 1, progressed: 1, dropOff: 0, pendingDropOff: 0, dropOffRate: 0, conversionRate: 33.3 },
@@ -44,6 +44,9 @@ test("고객 식별자 없이 정확 집계 span 속성을 만든다", () => {
   );
 
   assert.equal(options.op, "poc.flow.snapshot");
+  assert.equal(options.attributes["flow.step_index"], 1);
+  assert.equal(options.attributes["flow.step_display"], "01. 약관 동의");
+  assert.equal(options.attributes["flow.page_path"], "/signup/terms");
   assert.equal(options.attributes["flow.drop_off"], 1);
   assert.equal(options.attributes["flow.drop_off_rate"], 33.3);
   assert.equal(options.attributes["snapshot.published_at"], "2026-09-07T00:00:00.000Z");

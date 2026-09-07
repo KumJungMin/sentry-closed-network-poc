@@ -128,6 +128,7 @@ export function calculateFlowFunnel(events, options) {
 
   const totalAttempts = viewedAtByStep.get(definition.steps[0].id)?.size ?? 0;
   const steps = definition.steps.map((step, index) => {
+    const stepIndex = index + 1;
     const stepViews = viewedAtByStep.get(step.id) ?? new Map();
     const nextStep = definition.steps[index + 1];
     const nextViews = nextStep ? viewedAtByStep.get(nextStep.id) : undefined;
@@ -150,6 +151,8 @@ export function calculateFlowFunnel(events, options) {
 
     return {
       ...step,
+      index: stepIndex,
+      display: `${String(stepIndex).padStart(2, "0")}. ${step.label}`,
       reached: stepViews.size,
       progressed,
       dropOff,

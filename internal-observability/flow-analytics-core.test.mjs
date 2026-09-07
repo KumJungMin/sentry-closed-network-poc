@@ -52,7 +52,9 @@ test("플로우마다 다른 유예시간으로 정확한 이탈률을 계산한
   assert.equal(summary.totalAttempts, 3);
   assert.deepEqual(summary.steps[0], {
     id: "order",
+    index: 1,
     label: "주문 확인",
+    display: "01. 주문 확인",
     path: "/payment/order",
     reached: 3,
     progressed: 1,

@@ -33,6 +33,10 @@ test("정확한 이탈률 위젯은 확정 이탈과 판정 대기를 분리한�
   const dashboard = dashboards.find(({ title }) => title === "PoC - 도메인 프론트 현황");
   const widget = dashboard.widgets.find(({ title }) => title === "플로우별 최신 정확 집계");
   assert.equal(widget.widgetType, "spans");
+  assert.ok(widget.queries[0].fields.includes("tags[flow.step_index,number]"));
+  assert.ok(widget.queries[0].fields.includes("flow.step_display"));
+  assert.ok(widget.queries[0].fields.includes("flow.page_path"));
+  assert.ok(widget.queries[0].fields.includes("tags[flow.progressed,number]"));
   assert.ok(widget.queries[0].fields.includes("tags[flow.drop_off,number]"));
   assert.ok(widget.queries[0].fields.includes("tags[flow.pending_drop_off,number]"));
   assert.ok(widget.queries[0].fields.includes("tags[flow.drop_off_rate,number]"));
