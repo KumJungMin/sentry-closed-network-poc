@@ -1,4 +1,5 @@
 import {
+  captureFlowException,
   createObservedFlowEventSink,
   initializeObservability,
   SentryRoutes,
@@ -17,4 +18,4 @@ export const observabilityRuntime = initializeObservability({
 });
 
 export const flowEventSink = createObservedFlowEventSink();
-export { SentryRoutes };
+export { captureFlowException, SentryRoutes };

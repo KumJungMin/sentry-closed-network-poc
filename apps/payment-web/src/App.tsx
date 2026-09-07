@@ -1,5 +1,10 @@
-import { DomainFlowApp, type DomainFlowAppProps } from "@poc/flow-app";
-import { flowEventSink, SentryRoutes } from "./observability.js";
+import { createMockFlowSubmitter, DomainFlowApp, type DomainFlowAppProps } from "@poc/flow-app";
+import { captureFlowException, flowEventSink, SentryRoutes } from "./observability.js";
+
+const submitStep = createMockFlowSubmitter({
+  targetStep: "authenticate",
+  scenarioField: "authCode",
+});
 
 const stepContent = {
   order: {
@@ -26,12 +31,12 @@ const stepContent = {
   },
   authenticate: {
     title: "결제를 인증해 주세요",
-    description: "Mock API에서 승인, 거절, 통신 오류를 재현하기 위한 테스트 코드입니다.",
+    description: "OK은 성공, DECLINE은 업무 거절, TIMEOUT은 기술 오류를 재현합니다.",
     field: {
       name: "authCode",
       label: "테스트 인증 코드",
       type: "password",
-      placeholder: "123456",
+      placeholder: "OK / DECLINE / TIMEOUT",
       required: true,
     },
   },
@@ -48,8 +53,10 @@ export function App() {
       appTitle="결제 프로세스"
       flowName="payment"
       onFlowEvent={flowEventSink}
+      onFlowException={captureFlowException}
       RoutesComponent={SentryRoutes}
       stepContent={stepContent}
+      submitStep={submitStep}
       userId={import.meta.env.VITE_POC_USER_ID ?? "CUSTOMER-PAYMENT-001"}
     />
   );

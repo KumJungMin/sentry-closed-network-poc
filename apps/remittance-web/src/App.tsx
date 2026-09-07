@@ -1,5 +1,10 @@
-import { DomainFlowApp, type DomainFlowAppProps } from "@poc/flow-app";
-import { flowEventSink, SentryRoutes } from "./observability.js";
+import { createMockFlowSubmitter, DomainFlowApp, type DomainFlowAppProps } from "@poc/flow-app";
+import { captureFlowException, flowEventSink, SentryRoutes } from "./observability.js";
+
+const submitStep = createMockFlowSubmitter({
+  targetStep: "authenticate",
+  scenarioField: "authCode",
+});
 
 const stepContent = {
   recipient: {
@@ -30,12 +35,12 @@ const stepContent = {
   },
   authenticate: {
     title: "송금을 인증해 주세요",
-    description: "Mock API 시나리오에서 성공, 거절, 타임아웃을 선택할 수 있게 확장됩니다.",
+    description: "OK은 성공, DECLINE은 업무 거절, TIMEOUT은 기술 오류를 재현합니다.",
     field: {
       name: "authCode",
       label: "테스트 인증 코드",
       type: "password",
-      placeholder: "123456",
+      placeholder: "OK / DECLINE / TIMEOUT",
       required: true,
     },
   },
@@ -52,8 +57,10 @@ export function App() {
       appTitle="송금 프로세스"
       flowName="remittance"
       onFlowEvent={flowEventSink}
+      onFlowException={captureFlowException}
       RoutesComponent={SentryRoutes}
       stepContent={stepContent}
+      submitStep={submitStep}
       userId={import.meta.env.VITE_POC_USER_ID ?? "CUSTOMER-REMITTANCE-001"}
     />
   );

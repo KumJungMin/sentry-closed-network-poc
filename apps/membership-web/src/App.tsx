@@ -1,5 +1,10 @@
-import { DomainFlowApp, type DomainFlowAppProps } from "@poc/flow-app";
-import { flowEventSink, SentryRoutes } from "./observability.js";
+import { createMockFlowSubmitter, DomainFlowApp, type DomainFlowAppProps } from "@poc/flow-app";
+import { captureFlowException, flowEventSink, SentryRoutes } from "./observability.js";
+
+const submitStep = createMockFlowSubmitter({
+  targetStep: "identity",
+  scenarioField: "identityCode",
+});
 
 const stepContent = {
   terms: {
@@ -36,12 +41,12 @@ const stepContent = {
   },
   identity: {
     title: "고객 확인 정보를 입력해 주세요",
-    description: "실제 개인정보 대신 테스트용 확인 코드를 사용합니다.",
+    description: "OK은 성공, DECLINE은 업무 거절, TIMEOUT은 기술 오류를 재현합니다.",
     field: {
       name: "identityCode",
       label: "테스트 확인 코드",
       type: "text",
-      placeholder: "MEMBER-OK",
+      placeholder: "OK / DECLINE / TIMEOUT",
       required: true,
     },
   },
@@ -58,8 +63,10 @@ export function App() {
       appTitle="가입 프로세스"
       flowName="membership"
       onFlowEvent={flowEventSink}
+      onFlowException={captureFlowException}
       RoutesComponent={SentryRoutes}
       stepContent={stepContent}
+      submitStep={submitStep}
       userId={import.meta.env.VITE_POC_USER_ID ?? "CUSTOMER-MEMBERSHIP-001"}
     />
   );
