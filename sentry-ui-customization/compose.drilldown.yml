@@ -1,4 +1,0 @@
-services:
-  web:
-    image: sentry-self-hosted-drilldown:26.8.0
-    build: !reset null
